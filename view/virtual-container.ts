@@ -42,7 +42,6 @@ export class VirtualContainer {
         var virtualCanvas = this.createVirtualCanvas();
         virtualCanvas.appendChild(this.createVirtualCanvasContent());
         this._container.appendChild(virtualCanvas);
-        this.initRowPosition();
     }
 
     private createVirtualCanvas(): HTMLDivElement {
@@ -92,11 +91,6 @@ export class VirtualContainer {
         ele.style.top = `${this._service.getRowPosition(rowIndex, this._rowHeight)}px`;
     }
 
-    private initRowPosition(): void {
-        for (var i = 0; i < this._virtualRowCount; i++) {
-            this.setRowPosition(i, this._service.getRowPosition(i, this._rowHeight));
-        }
-    }
     //#endregion
 
     private init(container: HTMLDivElement, rowCount: number, rowHeight: number): void {
