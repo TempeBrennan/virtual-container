@@ -2,7 +2,6 @@ import { CircularQueue, QueueEvent, IndexChangeArgs } from "../operation-algorit
 import { VirualContainerService } from "../service/virtual-container.service";
 
 export class VirtualContainer {
-    private _data: CircularQueue;
     private _rowHeight: number;
     private _container: HTMLDivElement;
     private _scrolledRowCount: number = 0;
@@ -36,7 +35,6 @@ export class VirtualContainer {
     //#endregion
 
     //#region HTML
-
     private initElement(): void {
         this._container.classList.add(this.getContainerClassName());
         var virtualCanvas = this.createVirtualCanvas();
@@ -70,6 +68,7 @@ export class VirtualContainer {
         rowElement.style.width = '100%';
         rowElement.style.height = `${this._rowHeight}px`;
         rowElement.style.top = `${this._service.getRowPosition(rowIndex, this._rowHeight)}px`;
+        rowElement.innerHTML = rowIndex.toString();
         return rowElement;
     }
 
@@ -81,8 +80,8 @@ export class VirtualContainer {
     //#region row position
     public updateRowPosition(oldIndex: number, newIndex: number): void {
         var rowElement = this.getRowElement(oldIndex);
-        rowElement.classList.remove(`r${oldIndex}`);
-        rowElement.classList.add(`r${newIndex}`);
+        rowElement.classList.remove(this.getRowIndexClassName(oldIndex));
+        rowElement.classList.add(this.getRowIndexClassName(newIndex));
         this.setRowPosition(newIndex, this._service.getRowPosition(newIndex, this._rowHeight));
     }
 
@@ -92,8 +91,8 @@ export class VirtualContainer {
     }
 
     //#endregion
-
     private init(container: HTMLDivElement, rowCount: number, rowHeight: number): void {
+        this._service= new VirualContainerService();
         this._container = container;
         this._rowHeight = rowHeight;
         this._actualRowCount = rowCount;
@@ -110,21 +109,20 @@ export class VirtualContainer {
     }
 
     private scroll(offset: number): void {
-        if (this._service.isScrollBottom(offset, this._container.offsetHeight, this._virtualRowCount, this._rowHeight)) {
-            offset = this._service.getScrollBottomOffset(this._container.offsetHeight, this._virtualRowCount, this._rowHeight);
+        if (this._service.isScrollBottom(offset, this._container.offsetHeight, this._actualRowCount, this._rowHeight)) {
+            offset = this._service.getScrollBottomOffset(this._container.offsetHeight, this._actualRowCount, this._rowHeight);
         }
 
         var scrolledRowCount = this._service.getScrolledRowCount(offset, this._rowHeight);
-
         if (scrolledRowCount === this._scrolledRowCount) {
             return;
         }
 
         var offsetRowCount = Math.abs(scrolledRowCount - this._scrolledRowCount);
         if (scrolledRowCount > this._scrolledRowCount) {
-            this._data.moveUp(offsetRowCount);
+            this._circulerQueue.moveUp(offsetRowCount);
         } else {
-            this._data.moveDown(offsetRowCount);
+            this._circulerQueue.moveDown(offsetRowCount);
         }
 
         this._scrolledRowCount = scrolledRowCount;
@@ -132,6 +130,7 @@ export class VirtualContainer {
 
     private positionChange(sender: CircularQueue, args: IndexChangeArgs): void {
         this.updateRowPosition(args.oldIndex, args.newIndex);
+        this.getRowElement(args.newIndex).innerHTML = args.newIndex.toString();
     }
 
 }

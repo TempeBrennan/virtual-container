@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "webpack"
   },
   "repository": {
     "type": "git",
@@ -17,6 +18,9 @@
   },
   "homepage": "https://github.com/TempeBrennan/virtual-container#readme",
   "dependencies": {
-    "typescript": "^3.8.3"
+    "typescript": "latest",
+    "webpack": "latest",
+    "ts-loader": "latest",
+    "webpack-cli": "latest"
   }
 }

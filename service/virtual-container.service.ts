@@ -1,5 +1,3 @@
-import { CircularQueue, QueueEvent, IndexChangeArgs } from "../operation-algorithm/circular-queue";
-import { VirualContainerServiceConfig } from "./virtual-container.service.type";
 
 export class VirualContainerService {
 
@@ -15,12 +13,12 @@ export class VirualContainerService {
         return Math.floor(offset / rowHeight);
     }
 
-    public isScrollBottom(offset: number, containerHeight: number, virtualRowCount: number, rowHeight: number): boolean {
-        return (Math.abs(offset) - this.getScrollBottomOffset(containerHeight, virtualRowCount, rowHeight)) >= 0;
+    public isScrollBottom(offset: number, containerHeight: number, actualRowCount: number, rowHeight: number): boolean {
+        return (Math.abs(offset) - this.getScrollBottomOffset(containerHeight, actualRowCount, rowHeight)) >= 0;
     }
 
-    public getScrollBottomOffset(containerHeight: number, virtualRowCount: number, rowHeight: number): number {
-        return this.getVirtualHeight(virtualRowCount, rowHeight) - containerHeight;
+    public getScrollBottomOffset(containerHeight: number, actualRowCount: number, rowHeight: number): number {
+        return this.getVirtualHeight(actualRowCount, rowHeight) - containerHeight;
     }
 
     public getVirtualHeight(actualRowCount: number, rowHeight: number): number {

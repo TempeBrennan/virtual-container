@@ -4,6 +4,8 @@ module.exports = {
     output: {
         path: __dirname + "/output",
         filename: "bundle.js",
+        library: 'Cyz',
+        libraryTarget: 'window'
     },
     resolve: {
         extensions: ['.ts', '.js']

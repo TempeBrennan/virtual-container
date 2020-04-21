@@ -1,11 +1,11 @@
-.container {
+#container {
     width: 500px;
     height: 300px;
     border: 1px solid silver;
     overflow: scroll;
 }
 
-.row {
+.virtual-container-row {
     border: 1px solid #d3d3d3;
     box-sizing: border-box;
 }
