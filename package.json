@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/TempeBrennan/virtual-container/issues"
   },
-  "homepage": "https://github.com/TempeBrennan/virtual-container#readme"
+  "homepage": "https://github.com/TempeBrennan/virtual-container#readme",
+  "dependencies": {
+    "typescript": "^3.8.3"
+  }
 }
