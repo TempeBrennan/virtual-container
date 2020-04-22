@@ -131,7 +131,7 @@ export class VirtualContainer {
     private positionChange(sender: CircularQueue, args: IndexChangeArgs): void {
         args.changes.forEach((change) => {
             this.updateRowPosition(change.oldIndex, change.newIndex);
-            this.getRowElement(change.newIndex).innerHTML = change.oldIndex.toString();
+            this.getRowElement(change.newIndex).innerHTML = change.newIndex.toString();
         });
     }
 
