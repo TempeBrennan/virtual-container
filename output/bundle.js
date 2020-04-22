@@ -335,6 +335,7 @@ var VirtualContainer = /** @class */ (function () {
         rowElement.style.width = '100%';
         rowElement.style.height = this._rowHeight + "px";
         rowElement.style.top = this._service.getRowPosition(rowIndex, this._rowHeight) + "px";
+        // rowElement.innerHTML = rowIndex.toString();
         return rowElement;
     };
     VirtualContainer.prototype.getRowElement = function (rowIndex) {
@@ -387,7 +388,7 @@ var VirtualContainer = /** @class */ (function () {
     };
     VirtualContainer.prototype.positionChange = function (sender, args) {
         this.updateRowPosition(args.oldIndex, args.newIndex);
-        this.getRowElement(args.newIndex).innerHTML = args.newIndex.toString();
+        // this.getRowElement(args.newIndex).innerHTML = args.newIndex.toString();
     };
     return VirtualContainer;
 }());
