@@ -1,4 +1,3 @@
 /node_modules
-output/bundle.js
-output/bundle.js
+/output
 .vscode/settings.json
