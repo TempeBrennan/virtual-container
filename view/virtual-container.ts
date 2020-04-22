@@ -92,7 +92,7 @@ export class VirtualContainer {
 
     //#endregion
     private init(container: HTMLDivElement, rowCount: number, rowHeight: number): void {
-        this._service= new VirualContainerService();
+        this._service = new VirualContainerService();
         this._container = container;
         this._rowHeight = rowHeight;
         this._actualRowCount = rowCount;
@@ -129,7 +129,9 @@ export class VirtualContainer {
     }
 
     private positionChange(sender: CircularQueue, args: IndexChangeArgs): void {
-        this.updateRowPosition(args.oldIndex, args.newIndex);
+        args.changes.forEach((change) => {
+            this.updateRowPosition(change.oldIndex, change.newIndex);
+        });
         // this.getRowElement(args.newIndex).innerHTML = args.newIndex.toString();
     }
 

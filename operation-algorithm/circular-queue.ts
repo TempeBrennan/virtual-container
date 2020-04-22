@@ -2,60 +2,70 @@ import { EventArgs } from "../common/common-type";
 import { EventBase } from "../common/event-base";
 
 
-export class CircularQueue extends EventBase{
-    private _data: Array<number> = [];
+export class CircularQueue extends EventBase {
+    private _start: number;
+    private _end: number;
+    private _count: number;
 
     constructor(count: number) {
         super();
-        this._data = this.createData(count);
+        this._count = count;
+        this._start = 0;
+        this._end = count - 1;
     }
 
     public moveUp(offset: number): void {
-        for (var i = 0; i < offset; i++) {
-            var head = this._data.shift();
-            var tail = this.getTail();
-            var newTail = ++tail;
-            this._data.push(newTail);
-            this.raise(QueueEvent.IndexChanged,
-                <IndexChangeArgs>{
-                    oldIndex: head,
-                    newIndex: tail
-                });
+        var count = this.getMoveCount(offset);
+        var changes: Array<IndexChange> = [];
+        for (var i = this._start; i < this._start + count; i++) {
+            changes.push({
+                oldIndex: i,
+                newIndex: i + offset
+            });
         }
+        this.raiseEvent(changes);
+        this.updatePointer(offset);
     }
 
     public moveDown(offset: number): void {
-        for (var i = 0; i < offset; i++) {
-            var tail = this._data.pop();
-            var head = this.getHead();
-            var newHead = --head;
-            this._data.unshift(newHead);
-            this.raise(QueueEvent.IndexChanged,
-                <IndexChangeArgs>{
-                    oldIndex: tail,
-                    newIndex: head
-                });
+        var count = this.getMoveCount(offset);
+        var changes: Array<IndexChange> = [];
+        for (var i = this._end; i > this._end - count; i--) {
+            changes.push({
+                oldIndex: i,
+                newIndex: i - offset
+            });
         }
+        this.raiseEvent(changes);
+        this.updatePointer(-offset);
     }
 
-    private getHead(): number {
-        return this._data[0];
+    private updatePointer(offset: number): void {
+        this._start += offset;
+        this._end += offset;
     }
 
-    private getTail(): number {
-        return this._data[this._data.length - 1];
+    private raiseEvent(changes: Array<IndexChange>): void {
+        this.raise(QueueEvent.IndexChanged,
+            <IndexChangeArgs>{
+                changes: changes
+            });
     }
 
-    private createData(count: number): Array<number> {
-        var data = [];
-        for (var i = 0; i < count; i++) {
-            data.push(i);
+    private getMoveCount(offset: number): number {
+        if (offset < this._count) {
+            return offset;
+        } else {
+            return this._count;
         }
-        return data;
     }
 }
 
 export interface IndexChangeArgs extends EventArgs {
+    changes: Array<IndexChange>;
+}
+
+export interface IndexChange {
     oldIndex: number;
     newIndex: number;
 }

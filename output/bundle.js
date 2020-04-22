@@ -182,46 +182,51 @@ var CircularQueue = /** @class */ (function (_super) {
     __extends(CircularQueue, _super);
     function CircularQueue(count) {
         var _this = _super.call(this) || this;
-        _this._data = [];
-        _this._data = _this.createData(count);
+        _this._count = count;
+        _this._start = 0;
+        _this._end = count - 1;
         return _this;
     }
     CircularQueue.prototype.moveUp = function (offset) {
-        for (var i = 0; i < offset; i++) {
-            var head = this._data.shift();
-            var tail = this.getTail();
-            var newTail = ++tail;
-            this._data.push(newTail);
-            this.raise(QueueEvent.IndexChanged, {
-                oldIndex: head,
-                newIndex: tail
+        var count = this.getMoveCount(offset);
+        var changes = [];
+        for (var i = this._start; i < this._start + count; i++) {
+            changes.push({
+                oldIndex: i,
+                newIndex: i + offset
             });
         }
+        this.raiseEvent(changes);
+        this.updatePointer(offset);
     };
     CircularQueue.prototype.moveDown = function (offset) {
-        for (var i = 0; i < offset; i++) {
-            var tail = this._data.pop();
-            var head = this.getHead();
-            var newHead = --head;
-            this._data.unshift(newHead);
-            this.raise(QueueEvent.IndexChanged, {
-                oldIndex: tail,
-                newIndex: head
+        var count = this.getMoveCount(offset);
+        var changes = [];
+        for (var i = this._end; i > this._end - count; i--) {
+            changes.push({
+                oldIndex: i,
+                newIndex: i - offset
             });
         }
+        this.raiseEvent(changes);
+        this.updatePointer(-offset);
     };
-    CircularQueue.prototype.getHead = function () {
-        return this._data[0];
+    CircularQueue.prototype.updatePointer = function (offset) {
+        this._start += offset;
+        this._end += offset;
     };
-    CircularQueue.prototype.getTail = function () {
-        return this._data[this._data.length - 1];
+    CircularQueue.prototype.raiseEvent = function (changes) {
+        this.raise(QueueEvent.IndexChanged, {
+            changes: changes
+        });
     };
-    CircularQueue.prototype.createData = function (count) {
-        var data = [];
-        for (var i = 0; i < count; i++) {
-            data.push(i);
+    CircularQueue.prototype.getMoveCount = function (offset) {
+        if (offset < this._count) {
+            return offset;
         }
-        return data;
+        else {
+            return this._count;
+        }
     };
     return CircularQueue;
 }(event_base_1.EventBase));
@@ -387,7 +392,10 @@ var VirtualContainer = /** @class */ (function () {
         this._scrolledRowCount = scrolledRowCount;
     };
     VirtualContainer.prototype.positionChange = function (sender, args) {
-        this.updateRowPosition(args.oldIndex, args.newIndex);
+        var _this = this;
+        args.changes.forEach(function (change) {
+            _this.updateRowPosition(change.oldIndex, change.newIndex);
+        });
         // this.getRowElement(args.newIndex).innerHTML = args.newIndex.toString();
     };
     return VirtualContainer;
