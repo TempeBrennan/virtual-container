@@ -68,7 +68,7 @@ export class VirtualContainer {
         rowElement.style.width = '100%';
         rowElement.style.height = `${this._rowHeight}px`;
         rowElement.style.top = `${this._service.getRowPosition(rowIndex, this._rowHeight)}px`;
-        // rowElement.innerHTML = rowIndex.toString();
+        rowElement.innerHTML = rowIndex.toString();
         return rowElement;
     }
 
@@ -131,8 +131,8 @@ export class VirtualContainer {
     private positionChange(sender: CircularQueue, args: IndexChangeArgs): void {
         args.changes.forEach((change) => {
             this.updateRowPosition(change.oldIndex, change.newIndex);
+            this.getRowElement(change.newIndex).innerHTML = change.oldIndex.toString();
         });
-        // this.getRowElement(args.newIndex).innerHTML = args.newIndex.toString();
     }
 
 }
