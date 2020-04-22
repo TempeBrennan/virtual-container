@@ -20,7 +20,7 @@ export class CircularQueue extends EventBase {
         for (var i = this._start; i < this._start + count; i++) {
             changes.push({
                 oldIndex: i,
-                newIndex: i + offset
+                newIndex: i + this.getOffset(offset)
             });
         }
         this.raiseEvent(changes);
@@ -33,7 +33,7 @@ export class CircularQueue extends EventBase {
         for (var i = this._end; i > this._end - count; i--) {
             changes.push({
                 oldIndex: i,
-                newIndex: i - offset
+                newIndex: i - this.getOffset(offset)
             });
         }
         this.raiseEvent(changes);
@@ -57,6 +57,14 @@ export class CircularQueue extends EventBase {
             return offset;
         } else {
             return this._count;
+        }
+    }
+
+    private getOffset(offset: number): number {
+        if (offset < this._count) {
+            return this._count;
+        } else {
+            return offset;
         }
     }
 }
