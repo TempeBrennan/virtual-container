@@ -2,18 +2,26 @@ import { CircularQueue, QueueEvent, IndexChangeArgs } from "../operation-algorit
 import { VirualContainerService } from "../service/virtual-container.service";
 
 export class VirtualContainer {
-    private _rowHeight: number;
     private _container: HTMLDivElement;
-    private _scrolledRowCount: number = 0;
+
+    private _rowHeight: number;
+    private _columnWidth: number;
+
     private _actualRowCount: number;
+    private _actualColumnCount: number;
+
     private _virtualRowCount: number;
+    private _virtualColumnCount: number;
+
+    private _scrolledRowCount: number = 0;
+    private _scrolledColumnCount: number = 0;
 
     private _service: VirualContainerService;
     private _circulerQueue: CircularQueue;
 
 
-    constructor(container: HTMLDivElement, rowCount: number, rowHeight: number = 30) {
-        this.init(container, rowCount, rowHeight);
+    constructor(container: HTMLDivElement, rowCount: number, columnCount: number, rowHeight: number = 30, rowWidth: number = 30) {
+        this.init(container, rowCount, columnCount, rowHeight, rowWidth);
     }
 
     //#region CSS
@@ -29,8 +37,16 @@ export class VirtualContainer {
         return `virtual-container-row`;
     }
 
+    private getCellClassName(): string {
+        return `virtual-container-cell`;
+    }
+
     private getRowIndexClassName(rowIndex: number): string {
         return `virtual-container-r${rowIndex}`;
+    }
+
+    private getCellIndexClassName(rowIndex: number): string {
+        return `virtual-container-c${rowIndex}`;
     }
     //#endregion
 
@@ -46,8 +62,8 @@ export class VirtualContainer {
         var div = document.createElement('div');
         div.classList.add(this.getVirtualCanvasClassName());
         div.style.position = 'relative';
-        div.style.width = '100%';
-        div.style.height = this._service.getVirtualHeight(this._actualRowCount, this._rowHeight) + 'px';
+        div.style.width = `${this._service.getVirtualWidth(this._actualColumnCount, this._columnWidth)}px`;
+        div.style.height = `${this._service.getVirtualHeight(this._actualRowCount, this._rowHeight)}px`;
         return div;
     }
 
@@ -68,12 +84,37 @@ export class VirtualContainer {
         rowElement.style.width = '100%';
         rowElement.style.height = `${this._rowHeight}px`;
         rowElement.style.top = `${this._service.getRowPosition(rowIndex, this._rowHeight)}px`;
-        rowElement.innerHTML = rowIndex.toString();
+        rowElement.appendChild(this.createCellList());
         return rowElement;
     }
 
     private getRowElement(rowIndex: number): HTMLDivElement {
         return this._container.querySelector(`.${this.getRowIndexClassName(rowIndex)}`);
+    }
+
+    private createCellList(): DocumentFragment {
+        var count = this._virtualColumnCount;
+        var fragement = document.createDocumentFragment();
+        for (var i = 0; i < count; i++) {
+            fragement.appendChild(this.createCellElement(i));
+        }
+        return fragement;
+    }
+
+    private createCellElement(columnIndex: number): HTMLDivElement {
+        var cellElement = document.createElement('div');
+        cellElement.classList.add(this.getCellClassName());
+        cellElement.classList.add(this.getCellIndexClassName(columnIndex));
+        cellElement.style.position = 'absolute';
+        cellElement.style.width = `${this._columnWidth}px`;
+        cellElement.style.height = `100%`;
+        cellElement.style.left = `${this._service.getRowPosition(columnIndex, this._columnWidth)}px`;
+        cellElement.innerHTML = columnIndex.toString();
+        return cellElement;
+    }
+
+    private getCellElement(columnIndex: number): HTMLDivElement {
+        return this._container.querySelector(`.${this.getCellIndexClassName(columnIndex)}`);
     }
     //#endregion
 
@@ -91,12 +132,19 @@ export class VirtualContainer {
     }
 
     //#endregion
-    private init(container: HTMLDivElement, rowCount: number, rowHeight: number): void {
+    private init(container: HTMLDivElement, rowCount: number, columnCount: number, rowHeight: number, columnWidth: number): void {
         this._service = new VirualContainerService();
         this._container = container;
+
         this._rowHeight = rowHeight;
+        this._columnWidth = columnWidth;
+
         this._actualRowCount = rowCount;
+        this._actualColumnCount = columnCount;
+
         this._virtualRowCount = this._service.getVirtualRowCount(this._container.offsetHeight, this._rowHeight);
+        this._virtualColumnCount = this._service.getVirtualColumnCount(this._container.offsetWidth, this._columnWidth);
+
         this._circulerQueue = new CircularQueue(this._virtualRowCount);
 
         this.initElement();
@@ -131,7 +179,7 @@ export class VirtualContainer {
     private positionChange(sender: CircularQueue, args: IndexChangeArgs): void {
         args.changes.forEach((change) => {
             this.updateRowPosition(change.oldIndex, change.newIndex);
-            this.getRowElement(change.newIndex).innerHTML = change.newIndex.toString();
+            // this.getRowElement(change.newIndex).innerHTML = change.newIndex.toString();
         });
     }
 

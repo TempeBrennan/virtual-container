@@ -6,6 +6,12 @@
 }
 
 .virtual-container-row {
+    /* border: 1px solid #d3d3d3;
+    box-sizing: border-box; */
+}
+
+.virtual-container-cell {
     border: 1px solid #d3d3d3;
     box-sizing: border-box;
+    text-align: center;
 }

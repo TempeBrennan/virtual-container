@@ -5,8 +5,16 @@ export class VirualContainerService {
         return rowIndex * rowHeight;
     }
 
+    public getCellPosition(columnIndex: number, columnWidth: number): number {
+        return columnIndex * columnWidth;
+    }
+
     public getVirtualRowCount(containerHeight: number, rowHeight: number): number {
         return Math.round(containerHeight / rowHeight) + 2;
+    }
+
+    public getVirtualColumnCount(containerWidth: number, columnWidth: number): number {
+        return Math.round(containerWidth / columnWidth) + 2;
     }
 
     public getScrolledRowCount(offset: number, rowHeight: number): number {
@@ -23,5 +31,9 @@ export class VirualContainerService {
 
     public getVirtualHeight(actualRowCount: number, rowHeight: number): number {
         return actualRowCount * rowHeight;
+    }
+
+    public getVirtualWidth(actualColumnCount: number, columnWidth: number): number {
+        return actualColumnCount * columnWidth;
     }
 }
