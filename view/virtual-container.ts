@@ -17,10 +17,11 @@ export class VirtualContainer {
     private _scrolledColumnCount: number = 0;
 
     private _service: VirualContainerService;
-    private _circulerQueue: CircularQueue;
+    private _hCirculerQueue: CircularQueue;
+    private _vCirculerQueue: CircularQueue;
 
 
-    constructor(container: HTMLDivElement, rowCount: number, columnCount: number, rowHeight: number = 30, rowWidth: number = 30) {
+    constructor(container: HTMLDivElement, rowCount: number, columnCount: number, rowHeight: number = 30, rowWidth: number = 80) {
         this.init(container, rowCount, columnCount, rowHeight, rowWidth);
     }
 
@@ -92,6 +93,10 @@ export class VirtualContainer {
         return this._container.querySelector(`.${this.getRowIndexClassName(rowIndex)}`);
     }
 
+    private getAllRowElements(): NodeListOf<HTMLDivElement> {
+        return this._container.querySelectorAll(`.${this.getRowClassName()}`);
+    }
+
     private createCellList(): DocumentFragment {
         var count = this._virtualColumnCount;
         var fragement = document.createDocumentFragment();
@@ -113,8 +118,8 @@ export class VirtualContainer {
         return cellElement;
     }
 
-    private getCellElement(columnIndex: number): HTMLDivElement {
-        return this._container.querySelector(`.${this.getCellIndexClassName(columnIndex)}`);
+    private getCellElement(rowElement: HTMLDivElement, columnIndex: number): HTMLDivElement {
+        return rowElement.querySelector(`.${this.getCellIndexClassName(columnIndex)}`);
     }
     //#endregion
 
@@ -123,12 +128,25 @@ export class VirtualContainer {
         var rowElement = this.getRowElement(oldIndex);
         rowElement.classList.remove(this.getRowIndexClassName(oldIndex));
         rowElement.classList.add(this.getRowIndexClassName(newIndex));
-        this.setRowPosition(newIndex, this._service.getRowPosition(newIndex, this._rowHeight));
+        this.setRowPosition(newIndex);
     }
 
-    private setRowPosition(rowIndex: number, top: number): void {
+    private setRowPosition(rowIndex: number): void {
         var ele = this.getRowElement(rowIndex);
         ele.style.top = `${this._service.getRowPosition(rowIndex, this._rowHeight)}px`;
+    }
+
+    public updateCellPosition(rowElement: HTMLDivElement, oldIndex: number, newIndex: number): void {
+        var cellElement = this.getCellElement(rowElement, oldIndex);
+        cellElement.classList.remove(this.getCellIndexClassName(oldIndex));
+        cellElement.classList.add(this.getCellIndexClassName(newIndex));
+        this.setCellPosition(rowElement, newIndex);
+    }
+
+    private setCellPosition(rowElement: HTMLDivElement, colIndex: number): void {
+        var ele = this.getCellElement(rowElement, colIndex);
+        ele.style.left = `${this._service.getCellPosition(colIndex, this._columnWidth)}px`;
+        ele.innerHTML = colIndex.toString();
     }
 
     //#endregion
@@ -145,18 +163,23 @@ export class VirtualContainer {
         this._virtualRowCount = this._service.getVirtualRowCount(this._container.offsetHeight, this._rowHeight);
         this._virtualColumnCount = this._service.getVirtualColumnCount(this._container.offsetWidth, this._columnWidth);
 
-        this._circulerQueue = new CircularQueue(this._virtualRowCount);
+        this._hCirculerQueue = new CircularQueue(this._virtualRowCount);
+        this._vCirculerQueue = new CircularQueue(this._virtualColumnCount);
 
         this.initElement();
         this.bindEvent();
     }
 
     private bindEvent(): void {
-        this._container.addEventListener('scroll', () => this.scroll(this._container.scrollTop));
-        this._circulerQueue.addEventListener(QueueEvent.IndexChanged, this.positionChange.bind(this))
+        this._container.addEventListener('scroll', () => {
+            this.verticalScroll(this._container.scrollTop);
+            this.horizontalScroll(this._container.scrollLeft);
+        });
+        this._hCirculerQueue.addEventListener(QueueEvent.IndexChanged, this.rowPositionChange.bind(this))
+        this._vCirculerQueue.addEventListener(QueueEvent.IndexChanged, this.colPositionChange.bind(this))
     }
 
-    private scroll(offset: number): void {
+    private verticalScroll(offset: number): void {
         if (this._service.isScrollBottom(offset, this._container.offsetHeight, this._actualRowCount, this._rowHeight)) {
             offset = this._service.getScrollBottomOffset(this._container.offsetHeight, this._actualRowCount, this._rowHeight);
         }
@@ -168,18 +191,43 @@ export class VirtualContainer {
 
         var offsetRowCount = Math.abs(scrolledRowCount - this._scrolledRowCount);
         if (scrolledRowCount > this._scrolledRowCount) {
-            this._circulerQueue.moveUp(offsetRowCount);
+            this._hCirculerQueue.moveUp(offsetRowCount);
         } else {
-            this._circulerQueue.moveDown(offsetRowCount);
+            this._hCirculerQueue.moveDown(offsetRowCount);
         }
 
         this._scrolledRowCount = scrolledRowCount;
     }
 
-    private positionChange(sender: CircularQueue, args: IndexChangeArgs): void {
+    private horizontalScroll(offset: number): void {
+        if (this._service.isScrollBottom(offset, this._container.offsetWidth, this._actualColumnCount, this._columnWidth)) {
+            offset = this._service.getScrollBottomOffset(this._container.offsetWidth, this._actualColumnCount, this._columnWidth);
+        }
+
+        var scrolledColumnCount = this._service.getScolledColumnCount(offset, this._columnWidth);
+        if (scrolledColumnCount === this._scrolledColumnCount) {
+            return;
+        }
+
+        var offsetRowCount = Math.abs(scrolledColumnCount - this._scrolledColumnCount);
+        if (scrolledColumnCount > this._scrolledColumnCount) {
+            this._vCirculerQueue.moveUp(offsetRowCount);
+        } else {
+            this._vCirculerQueue.moveDown(offsetRowCount);
+        }
+
+        this._scrolledColumnCount = scrolledColumnCount;
+    }
+
+    private rowPositionChange(sender: CircularQueue, args: IndexChangeArgs): void {
         args.changes.forEach((change) => {
             this.updateRowPosition(change.oldIndex, change.newIndex);
-            // this.getRowElement(change.newIndex).innerHTML = change.newIndex.toString();
+        });
+    }
+
+    private colPositionChange(sender: CircularQueue, args: IndexChangeArgs): void {
+        args.changes.forEach((change) => {
+            this.getAllRowElements().forEach(r => this.updateCellPosition(r, change.oldIndex, change.newIndex));
         });
     }
 

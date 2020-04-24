@@ -21,12 +21,20 @@ export class VirualContainerService {
         return Math.floor(offset / rowHeight);
     }
 
+    public getScolledColumnCount(offset: number, columnWidth: number): number {
+        return Math.floor(offset / columnWidth);
+    }
+
     public isScrollBottom(offset: number, containerHeight: number, actualRowCount: number, rowHeight: number): boolean {
         return (Math.abs(offset) - this.getScrollBottomOffset(containerHeight, actualRowCount, rowHeight)) >= 0;
     }
 
     public getScrollBottomOffset(containerHeight: number, actualRowCount: number, rowHeight: number): number {
         return this.getVirtualHeight(actualRowCount, rowHeight) - containerHeight;
+    }
+
+    public getScrollRightOffset(containerWidth: number, actualColumnCount: number, columnWidth: number): number {
+        return this.getVirtualWidth(actualColumnCount, columnWidth) - containerWidth;
     }
 
     public getVirtualHeight(actualRowCount: number, rowHeight: number): number {
