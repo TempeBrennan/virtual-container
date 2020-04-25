@@ -1,3 +1,3 @@
-import { VirtualContainer } from "./view/virtual-container";
+import { VirtualContainer } from "./src/core/view/virtual-container";
 
 export { VirtualContainer }

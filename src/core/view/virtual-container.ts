@@ -1,4 +1,4 @@
-import { CircularQueue, QueueEvent, IndexChangeArgs } from "../operation-algorithm/circular-queue";
+import { CircularQueue, QueueEvent, IndexChangeArgs } from "../algorithm/circular-queue";
 import { VirualContainerService } from "../service/virtual-container.service";
 
 export class VirtualContainer {
@@ -231,4 +231,10 @@ export class VirtualContainer {
         });
     }
 
+}
+
+export interface VirtualContainerConfig {
+    element: HTMLDivElement;
+    rowCount: number;
+    rowHeight?: number;
 }

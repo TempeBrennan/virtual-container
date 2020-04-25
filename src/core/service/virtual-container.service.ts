@@ -45,3 +45,9 @@ export class VirualContainerService {
         return actualColumnCount * columnWidth;
     }
 }
+
+export interface VirualContainerServiceConfig {
+    virtualRowCount: number;
+    actualRowCount: number;
+    rowHeight?: number;
+}
