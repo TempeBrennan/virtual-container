@@ -14,6 +14,14 @@ export class CircularQueue extends EventBase {
         this._end = count - 1;
     }
 
+    public getCount(): number {
+        return this._count;
+    }
+
+    public getPosition(index: number) {
+        return this._start + index;
+    }
+
     public moveUp(offset: number): void {
         var count = this.getMoveCount(offset);
         var changes: Array<IndexChange> = [];
