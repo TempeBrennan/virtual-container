@@ -1,3 +1,3 @@
-import { VirtualContainer } from "./src/core/view/virtual-container";
+import { BlockQueue } from "./src/core/algorithm/block-queue";
 
-export { VirtualContainer }
+export { BlockQueue }

@@ -5,14 +5,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
-    <link href="../view/style.css" rel="stylesheet">
+    <!-- <link href="../view/style.css" rel="stylesheet"> -->
     <script src="../output/bundle.js"></script>
 </head>
 
 <body>
     <div id="container"></div>
     <script>
-        new Cyz.VirtualContainer(document.querySelector('#container'), 500000, 5000);
+        // new Cyz.VirtualContainer(document.querySelector('#container'), 500000, 5000);
+
+        var a1 = new Cyz.BlockQueue(100, 30, 300);
+        a1.setBlockSize(0, 260);
+        a1.setBlockSize(2, 10);
+        a1.setBlockSize(3, 40);
+
+        a1.addEventListener('change', function (s, e) {
+            console.log(e);
+        });
+
+        a1.move(10);
+        a1.move(20);
+
+
     </script>
 </body>
 
