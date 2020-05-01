@@ -16,21 +16,51 @@ export class BlockQueue extends EventBase {
         this._containerSize = containerSize;
     }
 
+    public getDefaultSize(): number {
+        return this._defaultSize;
+    }
+
+    public getCount(): number {
+        return this._count;
+    }
+
     public setBlockSize(index: number, size: number): void {
         if (index < 0 || index >= this._count) {
             return;
         }
 
-        this._sizeArr.push({
-            index: index,
-            size: size
-        });
+        var result = ArrayHelper.find(this._sizeArr, i => i.index === index);
+        if (result) {
+            result.size = size;
+        } else {
+            this._sizeArr.push({
+                index: index,
+                size: size
+            });
+        }
     }
 
-    public move(offset: number): void {
+    public getBlockSize(index: number): number {
+        if (index < 0 || index >= this._count) {
+            return 0;
+        }
+
+        var result = ArrayHelper.find(this._sizeArr, i => i.index === index);
+        if (result) {
+            return result.size;
+        } else {
+            return this._defaultSize;
+        }
+    }
+
+    public move(offset: number, init = false): void {
+        // if (this._offset === offset) {
+        //     return;
+        // }
+
         var preSnapShoot = this.getSnapShoot(this._offset);
         const curSnapShoot = this.getSnapShoot(offset);
-        var newBlocks: Array<number> = [];
+        var newBlocks: Array<AddInfo> = [];
         var addInfos: Array<AddInfo> = [];
         var removeInfos: Array<RemoveInfo> = [];
         var updateInfos: Array<UpdateInfo> = [];
@@ -40,7 +70,7 @@ export class BlockQueue extends EventBase {
             if (index !== -1) {
                 preSnapShoot.visibleBlocks.splice(index, 1);
             } else {
-                newBlocks.push(block.index);
+                newBlocks.push({ targetIndex: block.index, position: this.getBlockPosition(block.position) });
             }
         });
 
@@ -50,10 +80,11 @@ export class BlockQueue extends EventBase {
                     return;
                 }
 
-                var index = newBlocks.pop();
+                var block = newBlocks.pop();
                 updateInfos.push({
                     recyleIndex: b.index,
-                    targetIndex: index
+                    targetIndex: block.targetIndex,
+                    position: block.position
                 });
             });
         }
@@ -62,15 +93,26 @@ export class BlockQueue extends EventBase {
             removeInfos = preSnapShoot.visibleBlocks.map(b => { return { targetIndex: b.index }; });
         }
         if (newBlocks.length > 0) {
-            addInfos = newBlocks.map(i => { return { targetIndex: i }; });
+            addInfos = newBlocks.map(i => { return { targetIndex: i.targetIndex, position: i.position }; });
         }
 
         this._offset = offset;
-        this.raise(BlockEvent.change, <ChangeInfo>{
-            addInfos: addInfos,
-            updateInfos: updateInfos,
-            removeInfos: removeInfos
-        });
+        if (init) {
+            this.raise(BlockEvent.init, <InitInfoArgs>{
+                addInfos: addInfos,
+                totalSize: this.getTotalSize()
+            });
+        } else {
+            this.raise(BlockEvent.change, <ChangeInfoArgs>{
+                addInfos: addInfos,
+                updateInfos: updateInfos,
+                removeInfos: removeInfos,
+            });
+        }
+    }
+
+    public init(): void {
+        this.move(0, true);
     }
 
     private getSnapShoot(offset: number): SnapShoot {
@@ -101,15 +143,6 @@ export class BlockQueue extends EventBase {
         return snapShoot;
     }
 
-    private getBlockSize(index: number): number {
-        var itemData = ArrayHelper.find(this._sizeArr, i => i.index == index);
-        if (typeof itemData === 'object' && itemData !== null) {
-            return itemData.size;
-        } else {
-            return this._defaultSize;
-        }
-    }
-
     private getBlockPosition(index: number): number {
         var position = 0;
         for (var i = 0; i < index; i++) {
@@ -135,6 +168,14 @@ export class BlockQueue extends EventBase {
             }
         }
     }
+
+    private getTotalSize(): number {
+        var total = 0;
+        for (var i = 0; i < this._count; i++) {
+            total += this.getBlockSize(i);
+        }
+        return total;
+    }
 }
 
 interface ItemData {
@@ -159,22 +200,30 @@ interface HeadInfo {
 export interface UpdateInfo {
     recyleIndex: number;
     targetIndex: number;
+    position: number;
 }
 
 export interface AddInfo {
     targetIndex: number;
+    position: number;
 }
 
 export interface RemoveInfo {
     targetIndex: number;
 }
 
-export interface ChangeInfo extends EventArgs {
+export interface ChangeInfoArgs extends EventArgs {
     addInfos: Array<AddInfo>;
     removeInfos: Array<RemoveInfo>;
     updateInfos: Array<UpdateInfo>;
 }
 
+export interface InitInfoArgs extends EventArgs {
+    addInfos: Array<AddInfo>;
+    totalSize: number;
+}
+
 export enum BlockEvent {
-    change = 'change'
+    change = 'change',
+    init = 'init'
 }

@@ -24,7 +24,7 @@ export class ArrayHelper {
         });
     }
 
-    public static top<T>(arr: Array<T>, count: number): Array<T> {
+    public static take<T>(arr: Array<T>, count: number): Array<T> {
         return arr.slice(0, count);
     }
 }

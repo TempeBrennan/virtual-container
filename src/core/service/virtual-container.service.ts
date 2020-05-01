@@ -1,53 +1,68 @@
+import { EventBase } from "../../common/event-base";
+import { DataModel, DataModelEvent } from "../model/data-model";
+import { VirtualContainerInfo, Direction, EventArgs } from "../../common/common-type";
+import { InitInfoArgs } from "../algorithm/block-queue";
 
-export class VirualContainerService {
+export class VirtualContainerService extends EventBase {
 
-    public getRowPosition(rowIndex: number, rowHeight: number): number {
-        return rowIndex * rowHeight;
+    private _dataModel: DataModel;
+
+    constructor(containerInfo: VirtualContainerInfo) {
+        super();
+        this._dataModel = new DataModel(containerInfo);
+        this.bindEvent();
     }
 
-    public getCellPosition(columnIndex: number, columnWidth: number): number {
-        return columnIndex * columnWidth;
+    public init(): void {
+        this._dataModel.initRow();
     }
 
-    public getVirtualRowCount(containerHeight: number, rowHeight: number): number {
-        return Math.round(containerHeight / rowHeight) + 2;
+    public scroll(direction: Direction, offset: number): void {
+        this._dataModel.scroll(direction, offset);
     }
 
-    public getVirtualColumnCount(containerWidth: number, columnWidth: number): number {
-        return Math.round(containerWidth / columnWidth) + 2;
+    private bindEvent(): void {
+        this._dataModel.addEventListener(DataModelEvent.rowInit, (s, e: InitInfoArgs) => {
+            this.raise(ServiceEvent.RowInit, <RowInitArgs>{
+                rowCount: this._dataModel.getRowCount(),
+                rowHeight: this._dataModel.getDefaultRowHeight(),
+                totalHeight: e.totalSize,
+                rowPositions: e.addInfos.map(i => i.position)
+            });
+        });
+        this._dataModel.addEventListener(DataModelEvent.rowChange, (s, e) => {
+
+        });
+        this._dataModel.addEventListener(DataModelEvent.colInit, (s, e) => {
+            this.raise(ServiceEvent.ColInit, <ColumnInitArgs>{
+                rowCount: this._dataModel.getRowCount(),
+                colCount: this._dataModel.getColCount(),
+                colWidth: this._dataModel.getDefaultColWidth(),
+                totalWidth: e.totalSize
+            });
+        });
+        this._dataModel.addEventListener(DataModelEvent.colChange, (s, e) => {
+
+        });
     }
 
-    public getScrolledRowCount(offset: number, rowHeight: number): number {
-        return Math.floor(offset / rowHeight);
-    }
-
-    public getScolledColumnCount(offset: number, columnWidth: number): number {
-        return Math.floor(offset / columnWidth);
-    }
-
-    public isScrollBottom(offset: number, containerHeight: number, actualRowCount: number, rowHeight: number): boolean {
-        return (Math.abs(offset) - this.getScrollBottomOffset(containerHeight, actualRowCount, rowHeight)) >= 0;
-    }
-
-    public getScrollBottomOffset(containerHeight: number, actualRowCount: number, rowHeight: number): number {
-        return this.getVirtualHeight(actualRowCount, rowHeight) - containerHeight;
-    }
-
-    public getScrollRightOffset(containerWidth: number, actualColumnCount: number, columnWidth: number): number {
-        return this.getVirtualWidth(actualColumnCount, columnWidth) - containerWidth;
-    }
-
-    public getVirtualHeight(actualRowCount: number, rowHeight: number): number {
-        return actualRowCount * rowHeight;
-    }
-
-    public getVirtualWidth(actualColumnCount: number, columnWidth: number): number {
-        return actualColumnCount * columnWidth;
-    }
 }
 
-export interface VirualContainerServiceConfig {
-    virtualRowCount: number;
-    actualRowCount: number;
-    rowHeight?: number;
+export enum ServiceEvent {
+    RowInit = 'rowinit',
+    ColInit = 'colinit',
+}
+
+export interface RowInitArgs extends EventArgs {
+    rowCount: number;
+    rowHeight: number;
+    totalHeight: number;
+    rowPositions: Array<number>;
+}
+
+export interface ColumnInitArgs extends EventArgs {
+    rowCount: number;
+    colCount: number;
+    colWidth: number;
+    totalWidth: number;
 }
