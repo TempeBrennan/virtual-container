@@ -1,4 +1,4 @@
-import { VirtualContainerService, ServiceEvent, RowInitArgs } from "../service/virtual-container.service";
+import { VirtualContainerService, ServiceEvent, RowInitArgs, ColumnInitArgs } from "../service/virtual-container.service";
 import { VirtualContainerInfo, Direction } from "../../common/common-type";
 
 export class VirtualContainer {
@@ -40,15 +40,20 @@ export class VirtualContainer {
     //#region HTML
     private initElement(height: number): void {
         this._container.classList.add(this.getContainerClassName());
-        var virtualCanvas = this.createVirtualCanvas(height);
+        var virtualCanvas = this.createVirtualCanvas(height, Direction.vertical);
         this._container.appendChild(virtualCanvas);
     }
 
-    private createVirtualCanvas(height: number): HTMLDivElement {
+    private createVirtualCanvas(size: number, direction: Direction): HTMLDivElement {
         var div = document.createElement('div');
         div.classList.add(this.getVirtualCanvasClassName());
         div.style.position = 'relative';
-        div.style.height = `${height}px`;
+        if (direction === Direction.vertical) {
+            div.style.height = `${size}px`;
+        } else {
+            div.style.height = "100%";
+            div.style.width = `${size}px`;
+        }
         return div;
     }
 
@@ -72,6 +77,34 @@ export class VirtualContainer {
         return rowElement;
     }
 
+    private initColumnElement(totalWidth: number, columnCount: number, columnWidth: number, columnPositions: Array<number>): void {
+        this.getAllRowElements().forEach(rowElement => {
+            var virtualCanvas = this.createVirtualCanvas(totalWidth, Direction.horizontal);
+            virtualCanvas.appendChild(this.createCellListFragement(columnCount, columnWidth, columnPositions));
+            rowElement.appendChild(virtualCanvas);
+        });
+    }
+
+    private createCellListFragement(columnCount: number, columnWidth: number, columnPositions: Array<number>): DocumentFragment {
+        var fragement = document.createDocumentFragment();
+        for (var i = 0; i < columnCount; i++) {
+            fragement.appendChild(this.createCellElement(i, columnWidth, columnPositions[i]));
+        }
+        return fragement;
+    }
+
+    private createCellElement(columnIndex: number, columnWidth: number, columnPosition: number): HTMLDivElement {
+        var cellElement = document.createElement('div');
+        cellElement.classList.add(this.getCellClassName());
+        cellElement.classList.add(this.getCellIndexClassName(columnIndex));
+        cellElement.style.position = 'absolute';
+        cellElement.style.width = `${columnWidth}px`;
+        cellElement.style.height = `100%`;
+        cellElement.style.left = `${columnPosition}px`;
+        cellElement.innerHTML = columnIndex.toString();
+        return cellElement;
+    }
+
     private getRowElement(rowIndex: number): HTMLDivElement {
         return this._container.querySelector(`.${this.getRowIndexClassName(rowIndex)}`);
     }
@@ -79,27 +112,6 @@ export class VirtualContainer {
     private getAllRowElements(): NodeListOf<HTMLDivElement> {
         return this._container.querySelectorAll(`.${this.getRowClassName()}`);
     }
-
-    private createCellList(): DocumentFragment {
-        // var count = this._virtualColumnCount;
-        var fragement = document.createDocumentFragment();
-        // for (var i = 0; i < count; i++) {
-        //     fragement.appendChild(this.createCellElement(i));
-        // }
-        return fragement;
-    }
-
-    // private createCellElement(columnIndex: number): HTMLDivElement {
-    //     var cellElement = document.createElement('div');
-    //     cellElement.classList.add(this.getCellClassName());
-    //     cellElement.classList.add(this.getCellIndexClassName(columnIndex));
-    //     cellElement.style.position = 'absolute';
-    //     cellElement.style.width = `${this._columnWidth}px`;
-    //     cellElement.style.height = `100%`;
-    //     cellElement.style.left = `${this._service.getRowPosition(columnIndex, this._columnWidth)}px`;
-    //     cellElement.innerHTML = columnIndex.toString();
-    //     return cellElement;
-    // }
 
     private getCellElement(rowElement: HTMLDivElement, columnIndex: number): HTMLDivElement {
         return rowElement.querySelector(`.${this.getCellIndexClassName(columnIndex)}`);
@@ -143,8 +155,8 @@ export class VirtualContainer {
 
     private bindElementEvent(): void {
         this._container.addEventListener('scroll', () => {
-            this._service.scroll(Direction.horizontal, this._container.offsetLeft);
-            this._service.scroll(Direction.vertical, this._container.offsetTop);
+            // this._service.scroll(Direction.horizontal, this._container.scrollLeft);
+            this._service.scroll(Direction.vertical, this._container.scrollTop);
         });
     }
 
@@ -153,8 +165,8 @@ export class VirtualContainer {
             this.initElement(e.totalHeight);
             this.initRowElement(e.rowPositions, e.rowHeight);
         });
-        this._service.addEventListener(ServiceEvent.ColInit, (s, e) => {
-
+        this._service.addEventListener(ServiceEvent.ColInit, (s, e: ColumnInitArgs) => {
+            this.initColumnElement(e.totalWidth, e.colCount, e.colWidth, e.colPositions);
         });
     }
 

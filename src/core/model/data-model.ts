@@ -55,7 +55,9 @@ export class DataModel extends EventBase {
     }
 
     private bindEvent(): void {
-        this._rowModel.addEventListener(BlockEvent.init, (s, e) => this.raise(DataModelEvent.rowInit, e));
+        this._rowModel.addEventListener(BlockEvent.init, (s, e) => {
+            this.raise(DataModelEvent.rowInit, e);
+        });
         this._rowModel.addEventListener(BlockEvent.change, (s, e) => this.raise(DataModelEvent.rowChange, e));
         this._colModel.addEventListener(BlockEvent.init, (s, e) => this.raise(DataModelEvent.colInit, e));
         this._colModel.addEventListener(BlockEvent.change, (s, e) => this.raise(DataModelEvent.colChange, e));

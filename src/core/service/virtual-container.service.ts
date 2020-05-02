@@ -24,26 +24,25 @@ export class VirtualContainerService extends EventBase {
     private bindEvent(): void {
         this._dataModel.addEventListener(DataModelEvent.rowInit, (s, e: InitInfoArgs) => {
             this.raise(ServiceEvent.RowInit, <RowInitArgs>{
-                rowCount: this._dataModel.getRowCount(),
+                rowCount: e.addInfos.length,
                 rowHeight: this._dataModel.getDefaultRowHeight(),
                 totalHeight: e.totalSize,
                 rowPositions: e.addInfos.map(i => i.position)
             });
         });
         this._dataModel.addEventListener(DataModelEvent.rowChange, (s, e) => {
-
+            console.log(e);
         });
         this._dataModel.addEventListener(DataModelEvent.colInit, (s, e: InitInfoArgs) => {
             this.raise(ServiceEvent.ColInit, <ColumnInitArgs>{
-                rowCount: this._dataModel.getRowCount(),
-                colCount: this._dataModel.getColCount(),
+                colCount: e.addInfos.length,
                 colWidth: this._dataModel.getDefaultColWidth(),
                 totalWidth: e.totalSize,
                 colPositions: e.addInfos.map(i => i.position)
             });
         });
         this._dataModel.addEventListener(DataModelEvent.colChange, (s, e) => {
-
+            console.log(e);
         });
     }
 
@@ -62,7 +61,6 @@ export interface RowInitArgs extends EventArgs {
 }
 
 export interface ColumnInitArgs extends EventArgs {
-    rowCount: number;
     colCount: number;
     colWidth: number;
     totalWidth: number;

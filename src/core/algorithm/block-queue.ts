@@ -132,7 +132,7 @@ export class BlockQueue extends EventBase {
         });
 
         /**Get Block is invisible in the current snapshoot and make it recycle*/
-        var oldFreeBlock = pre.visibleBlocks.filter(i => visibleBlockIndex.indexOf(i.index) !== -1);
+        var oldFreeBlock = pre.visibleBlocks.filter(i => visibleBlockIndex.indexOf(i.index) === -1);
         oldFreeBlock.forEach(i => oldRecycleBlocks.push({
             index: i.index,
             position: i.position
