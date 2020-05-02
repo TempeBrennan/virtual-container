@@ -3,11 +3,11 @@ import { EventBase } from "../../common/event-base";
 import { EventArgs } from "../../common/common-type";
 
 export class BlockQueue extends EventBase {
-    private _sizeArr: Array<ItemData> = [];
+    private _sizeArr: Array<BlockInfo> = [];
     private _count: number;
     private _defaultSize: number;
     private _containerSize: number;
-    private _offset: number = 0;
+    private _offset: number;
 
     constructor(count: number, defaultSize: number, containerSize: number) {
         super();
@@ -53,70 +53,99 @@ export class BlockQueue extends EventBase {
         }
     }
 
-    public move(offset: number, init = false): void {
-        // if (this._offset === offset) {
-        //     return;
-        // }
+    public move(offset: number): void {
+        if (this._offset === offset) {
+            return;
+        }
 
         var preSnapShoot = this.getSnapShoot(this._offset);
         const curSnapShoot = this.getSnapShoot(offset);
-        var newBlocks: Array<AddInfo> = [];
-        var addInfos: Array<AddInfo> = [];
-        var removeInfos: Array<RemoveInfo> = [];
-        var updateInfos: Array<UpdateInfo> = [];
 
-        curSnapShoot.visibleBlocks.forEach(block => {
-            var index = ArrayHelper.findIndex(preSnapShoot.visibleBlocks, b => b.index === block.index);
-            if (index !== -1) {
-                preSnapShoot.visibleBlocks.splice(index, 1);
+        var addInfos: Array<BlockPosition> = [];
+        var removeInfos: Array<BlockPosition> = [];
+        var updateInfos: Array<UpdateBlockInfo> = [];
+
+        var blockChangeInfo = this.getBlockChangeInfo(preSnapShoot, curSnapShoot);
+        var newVisibleBlocks = blockChangeInfo.newVisibleBlocks;
+        var oldRecycleBlocks = blockChangeInfo.oldRecycleBlocks;
+
+        newVisibleBlocks.forEach(i => {
+            if (oldRecycleBlocks.length > 0) {
+                /**First use recyle Block */
+                updateInfos.push({
+                    recyleBlockIndex: oldRecycleBlocks.pop().index,
+                    index: i.index,
+                    position: i.position
+                });
             } else {
-                newBlocks.push({ targetIndex: block.index, position: this.getBlockPosition(block.position) });
+                /**No recyle Block, have to create new Block */
+                addInfos.push({
+                    index: i.index,
+                    position: i.position
+                });
             }
         });
 
-        if (preSnapShoot.visibleBlocks.length > 0) {
-            preSnapShoot.visibleBlocks.forEach((b) => {
-                if (newBlocks.length === 0) {
-                    return;
-                }
-
-                var block = newBlocks.pop();
-                updateInfos.push({
-                    recyleIndex: b.index,
-                    targetIndex: block.targetIndex,
-                    position: block.position
-                });
+        /**If still have remain block,  discard those blocks */
+        oldRecycleBlocks.forEach(i => {
+            removeInfos.push({
+                index: i.index,
+                position: i.position
             });
-        }
-
-        if (preSnapShoot.visibleBlocks.length > 0) {
-            removeInfos = preSnapShoot.visibleBlocks.map(b => { return { targetIndex: b.index }; });
-        }
-        if (newBlocks.length > 0) {
-            addInfos = newBlocks.map(i => { return { targetIndex: i.targetIndex, position: i.position }; });
-        }
+        });
 
         this._offset = offset;
-        if (init) {
-            this.raise(BlockEvent.init, <InitInfoArgs>{
-                addInfos: addInfos,
-                totalSize: this.getTotalSize()
-            });
-        } else {
-            this.raise(BlockEvent.change, <ChangeInfoArgs>{
-                addInfos: addInfos,
-                updateInfos: updateInfos,
-                removeInfos: removeInfos,
-            });
-        }
+        this.raise(BlockEvent.change, <ChangeInfoArgs>{
+            addInfos: addInfos,
+            updateInfos: updateInfos,
+            removeInfos: removeInfos,
+        });
     }
 
     public init(): void {
-        this.move(0, true);
+        this._offset = 0;
+        var snapShoot = this.getSnapShoot(0);
+        this.raise(BlockEvent.init, <InitInfoArgs>{
+            addInfos: snapShoot.visibleBlocks.map((i) => { return { index: i.index, position: i.position } }),
+            totalSize: this.getTotalSize()
+        });
+    }
+
+    //#region BlockInfo
+    private getBlockChangeInfo(pre: SnapShoot, cur: SnapShoot): BlockChangeInfo {
+        var visibleBlockIndex: Array<number> = [];
+        var newVisibleBlocks: Array<BlockPosition> = [];
+        var oldRecycleBlocks: Array<BlockPosition> = [];
+
+        cur.visibleBlocks.forEach(block => {
+            var index = ArrayHelper.findIndex(pre.visibleBlocks, b => b.index === block.index);
+            if (index !== -1) {
+                /**Block is still visible */
+                visibleBlockIndex.push(index);
+            } else {
+                /**New visible Block is shown*/
+                newVisibleBlocks.push({
+                    index: block.index,
+                    position: block.position
+                })
+            }
+        });
+
+        /**Get Block is invisible in the current snapshoot and make it recycle*/
+        var oldFreeBlock = pre.visibleBlocks.filter(i => visibleBlockIndex.indexOf(i.index) !== -1);
+        oldFreeBlock.forEach(i => oldRecycleBlocks.push({
+            index: i.index,
+            position: i.position
+        }));
+
+        return {
+            oldRecycleBlocks: oldRecycleBlocks,
+            newVisibleBlocks: newVisibleBlocks
+        }
     }
 
     private getSnapShoot(offset: number): SnapShoot {
-        var head = this.getHead(offset);
+        var head = this.getHeadBlockInfo(offset);
         var visibleSize = head.cover === 0 ? this.getBlockSize(head.index) : head.cover;
         var snapShoot = <SnapShoot>{
             visibleBlocks: [
@@ -151,7 +180,7 @@ export class BlockQueue extends EventBase {
         return position;
     }
 
-    private getHead(offset: number): HeadInfo {
+    private getHeadBlockInfo(offset: number): HeadBlockInfo {
         var totalSize = 0;
         for (var i = 0; i < this._count; i++) {
             totalSize += this.getBlockSize(i);
@@ -176,54 +205,48 @@ export class BlockQueue extends EventBase {
         }
         return total;
     }
+    //#endregion
 }
 
-interface ItemData {
-    index: number;
-    size: number;
-}
-
-interface ItemPosition {
+export interface BlockPosition {
     index: number;
     position: number;
 }
 
-interface SnapShoot {
-    visibleBlocks: Array<ItemPosition>;
+export interface UpdateBlockInfo extends BlockPosition {
+    recyleBlockIndex: number;
 }
-
-interface HeadInfo {
-    index: number;
-    cover: number;
-}
-
-export interface UpdateInfo {
-    recyleIndex: number;
-    targetIndex: number;
-    position: number;
-}
-
-export interface AddInfo {
-    targetIndex: number;
-    position: number;
-}
-
-export interface RemoveInfo {
-    targetIndex: number;
-}
-
 export interface ChangeInfoArgs extends EventArgs {
-    addInfos: Array<AddInfo>;
-    removeInfos: Array<RemoveInfo>;
-    updateInfos: Array<UpdateInfo>;
+    addInfos: Array<BlockPosition>;
+    removeInfos: Array<BlockPosition>;
+    updateInfos: Array<UpdateBlockInfo>;
 }
 
 export interface InitInfoArgs extends EventArgs {
-    addInfos: Array<AddInfo>;
+    addInfos: Array<BlockPosition>;
     totalSize: number;
 }
 
 export enum BlockEvent {
     change = 'change',
     init = 'init'
+}
+
+interface BlockInfo {
+    index: number;
+    size: number;
+}
+
+interface SnapShoot {
+    visibleBlocks: Array<BlockPosition>;
+}
+
+interface HeadBlockInfo {
+    index: number;
+    cover: number;
+}
+
+interface BlockChangeInfo {
+    newVisibleBlocks: Array<BlockPosition>;
+    oldRecycleBlocks: Array<BlockPosition>;
 }

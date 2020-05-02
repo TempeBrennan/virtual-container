@@ -14,7 +14,7 @@ export class VirtualContainerService extends EventBase {
     }
 
     public init(): void {
-        this._dataModel.initRow();
+        this._dataModel.init();
     }
 
     public scroll(direction: Direction, offset: number): void {
@@ -33,12 +33,13 @@ export class VirtualContainerService extends EventBase {
         this._dataModel.addEventListener(DataModelEvent.rowChange, (s, e) => {
 
         });
-        this._dataModel.addEventListener(DataModelEvent.colInit, (s, e) => {
+        this._dataModel.addEventListener(DataModelEvent.colInit, (s, e: InitInfoArgs) => {
             this.raise(ServiceEvent.ColInit, <ColumnInitArgs>{
                 rowCount: this._dataModel.getRowCount(),
                 colCount: this._dataModel.getColCount(),
                 colWidth: this._dataModel.getDefaultColWidth(),
-                totalWidth: e.totalSize
+                totalWidth: e.totalSize,
+                colPositions: e.addInfos.map(i => i.position)
             });
         });
         this._dataModel.addEventListener(DataModelEvent.colChange, (s, e) => {
@@ -65,4 +66,5 @@ export interface ColumnInitArgs extends EventArgs {
     colCount: number;
     colWidth: number;
     totalWidth: number;
+    colPositions: Array<number>
 }

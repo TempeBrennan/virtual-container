@@ -8,12 +8,13 @@ export class DataModel extends EventBase {
 
     constructor(containerInfo: VirtualContainerInfo) {
         super();
-        this.init(containerInfo);
+        this.initModel(containerInfo);
         this.bindEvent();
     }
 
-    public initRow(): void {
+    public init(): void {
         this._rowModel.init();
+        this._colModel.init();
     }
 
     public getRowCount(): number {
@@ -48,18 +49,16 @@ export class DataModel extends EventBase {
         this._colModel.setBlockSize(colIndex, colWidth);
     }
 
-    private init(containerInfo: VirtualContainerInfo): void {
+    private initModel(containerInfo: VirtualContainerInfo): void {
         this._rowModel = new BlockQueue(containerInfo.rowCount, containerInfo.rowHeight, containerInfo.height);
         this._colModel = new BlockQueue(containerInfo.colCount, containerInfo.colWidth, containerInfo.width);
     }
 
     private bindEvent(): void {
-        this._rowModel.addEventListener(BlockEvent.init, (s, e) => {
-            this.raise(DataModelEvent.rowInit, e);
-        });
-        this._rowModel.addEventListener(BlockEvent.change, (s, e) => this.raise(DataModelEvent.rowChange, e))
-        this._colModel.addEventListener(BlockEvent.init, (s, e) => this.raise(DataModelEvent.rowInit, e))
-        this._colModel.addEventListener(BlockEvent.change, (s, e) => this.raise(DataModelEvent.colChange, e))
+        this._rowModel.addEventListener(BlockEvent.init, (s, e) => this.raise(DataModelEvent.rowInit, e));
+        this._rowModel.addEventListener(BlockEvent.change, (s, e) => this.raise(DataModelEvent.rowChange, e));
+        this._colModel.addEventListener(BlockEvent.init, (s, e) => this.raise(DataModelEvent.colInit, e));
+        this._colModel.addEventListener(BlockEvent.change, (s, e) => this.raise(DataModelEvent.colChange, e));
     }
 }
 
