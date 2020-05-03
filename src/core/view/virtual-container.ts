@@ -5,8 +5,6 @@ export class VirtualContainer {
     private _container: HTMLDivElement;
     private _service: VirtualContainerService;
 
-
-
     constructor(container: HTMLDivElement, containerInfo: VirtualContainerInfo) {
         this.init(container, containerInfo);
     }
@@ -96,7 +94,7 @@ export class VirtualContainer {
     private createCellList(cellInfos: Array<CellInfo>): DocumentFragment {
         var fragement = document.createDocumentFragment();
         for (var i = 0; i < cellInfos.length; i++) {
-            fragement.appendChild(this.createCellElement(i, cellInfos[i].columnWidth, cellInfos[i].columnPosition));
+            fragement.appendChild(this.createCellElement(i, cellInfos[i].columnWidth, cellInfos[i].position));
         }
         return fragement;
     }

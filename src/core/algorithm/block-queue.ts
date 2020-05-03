@@ -194,11 +194,15 @@ export class BlockQueue extends EventBase {
             ]
         };
 
+        var last = false;
         for (var i = head.index + 1; i < this._count; i++) {
+            if (last) {
+                return snapShoot;
+            }
 
             /**Got the last visible block*/
-            if (visibleSize >= this._containerSize) {
-                return snapShoot;
+            if (visibleSize > this._containerSize) {
+                last = true;
             }
 
             var size = this.getBlockInfo(i).size;
@@ -226,12 +230,14 @@ export class BlockQueue extends EventBase {
             totalSize += this.getBlockInfo(i).size;
             if (totalSize > offset) {
                 return {
-                    index: i,
+                    /**Enlarge one Block to make smooth transition*/
+                    index: i > 0 ? i - 1 : i,
                     cover: totalSize - offset
                 };
             } else if (totalSize == offset) {
                 return {
-                    index: i + 1,
+                    /**Enlarge one Block to make smooth transition*/
+                    index: i > 0 ? i : i + 1,
                     cover: 0
                 };
             }

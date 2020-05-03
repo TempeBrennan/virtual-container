@@ -32,7 +32,7 @@ export class VirtualContainerService extends EventBase {
             cellInfos: state.blocks.map((i) => {
                 return {
                     columnIndex: i.index,
-                    columnPosition: i.position,
+                    position: i.position,
                     columnWidth: i.size
                 }
             })
@@ -74,8 +74,11 @@ export class VirtualContainerService extends EventBase {
                 removeRows: e.removeInfos.map(i => { return { rowIndex: i.index } }),
                 recycleRows: e.recycleInfos.map(i => {
                     return {
-                        oldRowIndex: i.recyleBlockIndex, newRowIndex: i.index,
-                        position: i.position, oldRowHeight: i.recycleBlockSize, newRowHeight: i.size
+                        oldRowIndex: i.recyleBlockIndex,
+                        newRowIndex: i.index,
+                        position: i.position,
+                        oldRowHeight: i.recycleBlockSize,
+                        newRowHeight: i.size
                     }
                 })
             });
@@ -116,13 +119,14 @@ export interface ColumnInitArgs extends EventArgs {
 }
 
 export interface RowChangeArgs extends EventArgs {
-    addRows: Array<RowPositionInfo>;
+    addRows: Array<RowInfo>;
     updateRow: Array<UpdateRowInfo>;
     removeRows: Array<RowInfo>;
     recycleRows: Array<RecycleRowInfo>;
 }
 
 export interface DataInfo {
+    position: number;
     customData?: object;
 }
 
@@ -133,12 +137,7 @@ export interface RowInfo extends DataInfo{
 
 export interface CellInfo extends DataInfo{
     columnIndex: number;
-    columnPosition: number;
     columnWidth: number;
-}
-
-export interface RowPositionInfo extends RowInfo {
-    position: number;
 }
 
 export interface RecycleRowInfo extends EventArgs {
@@ -150,8 +149,8 @@ export interface RecycleRowInfo extends EventArgs {
 }
 
 export interface UpdateRowInfo {
-    oldRowInfo: RowPositionInfo;
-    newRowInfo: RowPositionInfo;
+    oldRowInfo: RowInfo;
+    newRowInfo: RowInfo;
 }
 
 export interface CellState {

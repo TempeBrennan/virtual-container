@@ -64,8 +64,8 @@ export class DataModel extends EventBase {
     //#endregion
 
     private initModel(containerInfo: VirtualContainerInfo): void {
-        this._rowModel = new BlockQueue(containerInfo.rowCount, containerInfo.height, { size: containerInfo.height });
-        this._colModel = new BlockQueue(containerInfo.colCount, containerInfo.width, { size: containerInfo.width });
+        this._rowModel = new BlockQueue(containerInfo.rowCount, containerInfo.height, { size: containerInfo.rowHeight });
+        this._colModel = new BlockQueue(containerInfo.colCount, containerInfo.width, { size: containerInfo.colWidth });
     }
 
     private bindEvent(): void {
