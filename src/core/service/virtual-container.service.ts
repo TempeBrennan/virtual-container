@@ -74,11 +74,16 @@ export class VirtualContainerService extends EventBase {
                 removeRows: e.removeInfos.map(i => { return { rowIndex: i.index } }),
                 recycleRows: e.recycleInfos.map(i => {
                     return {
-                        oldRowIndex: i.recyleBlockIndex,
-                        newRowIndex: i.index,
-                        position: i.position,
-                        oldRowHeight: i.recycleBlockSize,
-                        newRowHeight: i.size
+                        oldRowInfo: {
+                            rowIndex: i.recyleBlockIndex,
+                            rowHeight: i.recycleBlockSize,
+                            position: i.position
+                        },
+                        newRowInfo: {
+                            rowIndex: i.index,
+                            rowHeight: i.size,
+                            position: i.position
+                        }
                     }
                 })
             });
@@ -122,7 +127,7 @@ export interface RowChangeArgs extends EventArgs {
     addRows: Array<RowInfo>;
     updateRow: Array<UpdateRowInfo>;
     removeRows: Array<RowInfo>;
-    recycleRows: Array<RecycleRowInfo>;
+    recycleRows: Array<UpdateRowInfo>;
 }
 
 export interface DataInfo {
@@ -130,12 +135,12 @@ export interface DataInfo {
     customData?: object;
 }
 
-export interface RowInfo extends DataInfo{
+export interface RowInfo extends DataInfo {
     rowIndex: number;
     rowHeight: number;
 }
 
-export interface CellInfo extends DataInfo{
+export interface CellInfo extends DataInfo {
     columnIndex: number;
     columnWidth: number;
 }

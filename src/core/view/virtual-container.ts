@@ -204,9 +204,9 @@ export class VirtualContainer {
 
     private rowChange(s, e: RowChangeArgs): void {
         e.recycleRows.forEach((r) => {
-            this.recycleRow(r.oldRowIndex, r.newRowIndex, r.position);
-            if (r.newRowHeight !== r.oldRowHeight) {
-                this.updateRowHeight(r.newRowIndex, r.newRowHeight);
+            this.recycleRow(r.oldRowInfo.rowIndex, r.newRowInfo.rowIndex, r.newRowInfo.position);
+            if (r.newRowInfo.rowHeight !== r.oldRowInfo.rowHeight) {
+                this.updateRowHeight(r.newRowInfo.rowIndex, r.newRowInfo.rowHeight);
             }
         });
         e.addRows.forEach((r) => {

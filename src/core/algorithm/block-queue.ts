@@ -66,6 +66,7 @@ export class BlockQueue extends EventBase {
                 recycleInfos.push({
                     recyleBlockIndex: oldRecyleBlock.index,
                     recycleBlockSize: oldRecyleBlock.size,
+                    recyclePosition: oldRecyleBlock.position,
                     index: i.index,
                     position: i.position,
                     size: i.size
@@ -268,6 +269,7 @@ export interface CurrentBlocks {
 export interface RecycleBlockInfo extends BlockPosition {
     recyleBlockIndex: number;
     recycleBlockSize: number;
+    recyclePosition: number;
 }
 
 export interface UpdateBlockInfo {
