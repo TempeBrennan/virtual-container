@@ -61,7 +61,7 @@ export class BlockQueue extends EventBase {
 
         var addInfos: Array<BlockPosition> = [];
         var removeInfos: Array<BlockPosition> = [];
-        var updateInfos: Array<UpdateBlockInfo> = [];
+        var recycleInfos: Array<RecycleBlockInfo> = [];
 
         var blockChangeInfo = this.getBlockChangeInfo(preSnapShoot, curSnapShoot);
         var newVisibleBlocks = blockChangeInfo.newVisibleBlocks;
@@ -71,7 +71,7 @@ export class BlockQueue extends EventBase {
             if (oldRecycleBlocks.length > 0) {
                 /**First use recyle Block */
                 var oldRecyleBlock = oldRecycleBlocks.pop();
-                updateInfos.push({
+                recycleInfos.push({
                     recyleBlockIndex: oldRecyleBlock.index,
                     recycleBlockSize: oldRecyleBlock.size,
                     index: i.index,
@@ -101,8 +101,9 @@ export class BlockQueue extends EventBase {
         this._snapShoot = curSnapShoot;
         this.raise(BlockEvent.change, <ChangeInfoArgs>{
             addInfos: addInfos,
-            updateInfos: updateInfos,
+            updateInfos: blockChangeInfo.updateVisibleBlocks,
             removeInfos: removeInfos,
+            recycleInfos: recycleInfos,
         });
     }
 
@@ -129,18 +130,33 @@ export class BlockQueue extends EventBase {
         var visibleBlockIndex: Array<number> = [];
         var newVisibleBlocks: Array<BlockPosition> = [];
         var oldRecycleBlocks: Array<BlockPosition> = [];
+        var updateVisibleBlocks: Array<UpdateBlockInfo> = [];
 
-        cur.visibleBlocks.forEach(block => {
-            var result = ArrayHelper.find(pre.visibleBlocks, b => b.index === block.index);
-            if (result) {
+        cur.visibleBlocks.forEach(newBlock => {
+            var oldBlock = ArrayHelper.find(pre.visibleBlocks, b => b.index === newBlock.index);
+            if (oldBlock) {
                 /**Block is still visible */
-                visibleBlockIndex.push(result.index);
+                if (oldBlock.size !== newBlock.size || oldBlock.position !== newBlock.position) {
+                    updateVisibleBlocks.push({
+                        oldBlockInfo: {
+                            index: oldBlock.index,
+                            position: oldBlock.position,
+                            size: oldBlock.size
+                        },
+                        newBlockInfo: {
+                            index: newBlock.index,
+                            position: newBlock.position,
+                            size: newBlock.size
+                        },
+                    });
+                }
+                visibleBlockIndex.push(oldBlock.index);
             } else {
                 /**New visible Block is shown*/
                 newVisibleBlocks.push({
-                    index: block.index,
-                    position: block.position,
-                    size: block.size
+                    index: newBlock.index,
+                    position: newBlock.position,
+                    size: newBlock.size
                 })
             }
         });
@@ -155,7 +171,8 @@ export class BlockQueue extends EventBase {
 
         return {
             oldRecycleBlocks: oldRecycleBlocks,
-            newVisibleBlocks: newVisibleBlocks
+            newVisibleBlocks: newVisibleBlocks,
+            updateVisibleBlocks: updateVisibleBlocks
         }
     }
 
@@ -237,15 +254,21 @@ export interface CurrentBlocks {
     totalSize: number;
 }
 
-export interface UpdateBlockInfo extends BlockPosition {
+export interface RecycleBlockInfo extends BlockPosition {
     recyleBlockIndex: number;
     recycleBlockSize: number;
 }
 
+export interface UpdateBlockInfo {
+    oldBlockInfo: BlockPosition;
+    newBlockInfo: BlockPosition;
+}
+
 export interface ChangeInfoArgs extends EventArgs {
     addInfos: Array<BlockPosition>;
-    removeInfos: Array<BlockPosition>;
     updateInfos: Array<UpdateBlockInfo>;
+    removeInfos: Array<BlockPosition>;
+    recycleInfos: Array<RecycleBlockInfo>;
 }
 
 export interface InitInfoArgs extends EventArgs {
@@ -275,4 +298,5 @@ interface HeadBlockInfo {
 interface BlockChangeInfo {
     newVisibleBlocks: Array<BlockPosition>;
     oldRecycleBlocks: Array<BlockPosition>;
+    updateVisibleBlocks: Array<UpdateBlockInfo>;
 }

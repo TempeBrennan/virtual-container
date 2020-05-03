@@ -50,9 +50,29 @@ export class VirtualContainerService extends EventBase {
         });
         this._dataModel.addEventListener(DataModelEvent.rowChange, (s: any, e: ChangeInfoArgs) => {
             this.raise(ServiceEvent.RowChange, <RowChangeArgs>{
-                addRows: e.addInfos.map(i => { return { rowIndex: i.index, position: i.position, rowHeight: i.size } }),
+                addRows: e.addInfos.map(i => {
+                    return {
+                        rowIndex: i.index,
+                        position: i.position,
+                        rowHeight: i.size
+                    };
+                }),
+                updateRow: e.updateInfos.map(i => {
+                    return {
+                        oldRowInfo: {
+                            rowIndex: i.oldBlockInfo.index,
+                            rowHeight: i.oldBlockInfo.size,
+                            position: i.oldBlockInfo.position
+                        },
+                        newRowInfo: {
+                            rowIndex: i.newBlockInfo.index,
+                            rowHeight: i.newBlockInfo.size,
+                            position: i.newBlockInfo.position
+                        }
+                    };
+                }),
                 removeRows: e.removeInfos.map(i => { return { rowIndex: i.index } }),
-                updateRows: e.updateInfos.map(i => {
+                recycleRows: e.recycleInfos.map(i => {
                     return {
                         oldRowIndex: i.recyleBlockIndex, newRowIndex: i.index,
                         position: i.position, oldRowHeight: i.recycleBlockSize, newRowHeight: i.size
@@ -96,9 +116,10 @@ export interface ColumnInitArgs extends EventArgs {
 }
 
 export interface RowChangeArgs extends EventArgs {
-    addRows: Array<AddRowInfo>;
+    addRows: Array<RowPositionInfo>;
+    updateRow: Array<UpdateRowInfo>;
     removeRows: Array<RowInfo>;
-    updateRows: Array<UpdateRowInfo>;
+    recycleRows: Array<RecycleRowInfo>;
 }
 
 export interface RowInfo {
@@ -112,16 +133,21 @@ export interface CellInfo {
     columnWidth: number;
 }
 
-export interface AddRowInfo extends RowInfo {
+export interface RowPositionInfo extends RowInfo {
     position: number;
 }
 
-export interface UpdateRowInfo extends EventArgs {
+export interface RecycleRowInfo extends EventArgs {
     oldRowIndex: number;
     newRowIndex: number;
     position: number;
     oldRowHeight: number;
     newRowHeight: number;
+}
+
+export interface UpdateRowInfo {
+    oldRowInfo: RowPositionInfo;
+    newRowInfo: RowPositionInfo;
 }
 
 export interface CellState {

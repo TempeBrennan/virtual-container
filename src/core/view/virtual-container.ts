@@ -143,7 +143,7 @@ export class VirtualContainer {
     //#endregion
 
     //#region row position
-    private updateRowPosition(oldIndex: number, newIndex: number, rowPosition: number): void {
+    private recycleRow(oldIndex: number, newIndex: number, rowPosition: number): void {
         var rowElement = this.getRowElement(oldIndex);
         rowElement.classList.remove(this.getRowIndexClassName(oldIndex));
         rowElement.classList.add(this.getRowIndexClassName(newIndex));
@@ -205,8 +205,8 @@ export class VirtualContainer {
     }
 
     private rowChange(s, e: RowChangeArgs): void {
-        e.updateRows.forEach((r) => {
-            this.updateRowPosition(r.oldRowIndex, r.newRowIndex, r.position);
+        e.recycleRows.forEach((r) => {
+            this.recycleRow(r.oldRowIndex, r.newRowIndex, r.position);
             if (r.newRowHeight !== r.oldRowHeight) {
                 this.updateRowHeight(r.newRowIndex, r.newRowHeight);
             }
@@ -214,6 +214,13 @@ export class VirtualContainer {
         e.addRows.forEach((r) => {
             var state = this._service.getCellState();
             this.insertRowElement(r.rowIndex, r.rowHeight, r.position, state.totalWidth, state.cellInfos);
+        });
+        e.updateRow.forEach((r) => {
+            if (r.oldRowInfo.rowHeight !== r.newRowInfo.rowHeight) {
+                this.updateRowHeight(r.newRowInfo.rowIndex, r.newRowInfo.rowHeight);
+            } else if (r.oldRowInfo.position !== r.newRowInfo.position) {
+                this.setRowPosition(r.newRowInfo.rowIndex, r.newRowInfo.position);
+            }
         });
         e.removeRows.forEach((r) => {
             this.removeRowElement(r.rowIndex);
