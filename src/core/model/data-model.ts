@@ -12,6 +12,7 @@ export class DataModel extends EventBase {
         this.bindEvent();
     }
 
+    //#region Public
     public init(): void {
         this._rowModel.init();
         this._colModel.init();
@@ -33,6 +34,18 @@ export class DataModel extends EventBase {
         return this._colModel.getDefaultSize();
     }
 
+    public getCurrentCellState(): CurrentBlocks {
+        return this._colModel.getCurrentBlockState();
+    }
+
+    public getRowCustomData(index: number): object {
+        return this._rowModel.getBlockTag(index);
+    }
+
+    public getColumnCustomData(index: number): object {
+        return this._colModel.getBlockTag(index);
+    }
+
     public scroll(direction: Direction, offset: number): void {
         if (direction === Direction.horizontal) {
             this._colModel.move(offset);
@@ -48,20 +61,15 @@ export class DataModel extends EventBase {
     public changeColumnWidth(colIndex: number, colWidth: number): void {
         this._colModel.setBlockSize(colIndex, colWidth);
     }
-
-    public getCurrentCellState(): CurrentBlocks {
-        return this._colModel.getCurrentBlockState();
-    }
+    //#endregion
 
     private initModel(containerInfo: VirtualContainerInfo): void {
-        this._rowModel = new BlockQueue(containerInfo.rowCount, containerInfo.rowHeight, containerInfo.height);
-        this._colModel = new BlockQueue(containerInfo.colCount, containerInfo.colWidth, containerInfo.width);
+        this._rowModel = new BlockQueue(containerInfo.rowCount, containerInfo.height, { size: containerInfo.height });
+        this._colModel = new BlockQueue(containerInfo.colCount, containerInfo.width, { size: containerInfo.width });
     }
 
     private bindEvent(): void {
-        this._rowModel.addEventListener(BlockEvent.init, (s, e) => {
-            this.raise(DataModelEvent.rowInit, e);
-        });
+        this._rowModel.addEventListener(BlockEvent.init, (s, e) => this.raise(DataModelEvent.rowInit, e));
         this._rowModel.addEventListener(BlockEvent.change, (s, e) => this.raise(DataModelEvent.rowChange, e));
         this._colModel.addEventListener(BlockEvent.init, (s, e) => this.raise(DataModelEvent.colInit, e));
         this._colModel.addEventListener(BlockEvent.change, (s, e) => this.raise(DataModelEvent.colChange, e));

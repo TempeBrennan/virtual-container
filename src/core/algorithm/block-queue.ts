@@ -5,20 +5,25 @@ import { EventArgs } from "../../common/common-type";
 export class BlockQueue extends EventBase {
     private _blockInfo: Array<BlockInfo> = [];
     private _count: number;
-    private _defaultSize: number;
+    private _defaultBlockInfo: BlockDataInfo;
     private _containerSize: number;
     private _offset: number;
     private _snapShoot: SnapShoot;
 
-    constructor(count: number, defaultSize: number, containerSize: number) {
+    constructor(count: number, containerSize: number, defaultBlockInfo: BlockDataInfo) {
         super();
         this._count = count;
-        this._defaultSize = defaultSize;
         this._containerSize = containerSize;
+        this._defaultBlockInfo = defaultBlockInfo;
     }
 
+    //#region Public
     public getDefaultSize(): number {
-        return this._defaultSize;
+        return this._defaultBlockInfo.size;
+    }
+
+    public getBlockTag(index: number): object {
+        return this.getBlockInfo(index).tag;
     }
 
     public getCount(): number {
@@ -42,21 +47,8 @@ export class BlockQueue extends EventBase {
         this.move(this._offset);
     }
 
-    public getBlockSize(index: number): number {
-        if (index < 0 || index >= this._count) {
-            return 0;
-        }
-
-        var result = ArrayHelper.find(this._blockInfo, i => i.index === index);
-        if (result) {
-            return result.size;
-        } else {
-            return this._defaultSize;
-        }
-    }
-
     public move(offset: number): void {
-        var preSnapShoot = this._snapShoot;
+        const preSnapShoot = this._snapShoot;
         const curSnapShoot = this.getSnapShoot(offset);
 
         var addInfos: Array<BlockPosition> = [];
@@ -118,19 +110,32 @@ export class BlockQueue extends EventBase {
     }
 
     public getCurrentBlockState(): CurrentBlocks {
-        var snapShoot = this.getSnapShoot(this._offset);
         return {
-            blocks: snapShoot.visibleBlocks,
+            blocks: this._snapShoot.visibleBlocks,
             totalSize: this.getTotalSize()
         }
     }
+    //#endregion
 
     //#region BlockInfo
+    private getBlockInfo(index: number): BlockDataInfo {
+        if (index < 0 || index >= this._count) {
+            return null;
+        }
+
+        var result = ArrayHelper.find(this._blockInfo, i => i.index === index);
+        if (result) {
+            return result;
+        } else {
+            return this._defaultBlockInfo;
+        }
+    }
+
     private getBlockChangeInfo(pre: SnapShoot, cur: SnapShoot): BlockChangeInfo {
         var visibleBlockIndex: Array<number> = [];
         var newVisibleBlocks: Array<BlockPosition> = [];
-        var oldRecycleBlocks: Array<BlockPosition> = [];
         var updateVisibleBlocks: Array<UpdateBlockInfo> = [];
+        var oldRecycleBlocks: Array<BlockPosition> = [];
 
         cur.visibleBlocks.forEach(newBlock => {
             var oldBlock = ArrayHelper.find(pre.visibleBlocks, b => b.index === newBlock.index);
@@ -178,13 +183,13 @@ export class BlockQueue extends EventBase {
 
     private getSnapShoot(offset: number): SnapShoot {
         var head = this.getHeadBlockInfo(offset);
-        var visibleSize = head.cover === 0 ? this.getBlockSize(head.index) : head.cover;
+        var visibleSize = head.cover === 0 ? this.getBlockInfo(head.index).size : head.cover;
         var snapShoot = <SnapShoot>{
             visibleBlocks: [
                 {
                     index: head.index,
                     position: this.getBlockPosition(head.index),
-                    size: this.getBlockSize(head.index)
+                    size: this.getBlockInfo(head.index).size
                 }
             ]
         };
@@ -196,7 +201,7 @@ export class BlockQueue extends EventBase {
                 return snapShoot;
             }
 
-            var size = this.getBlockSize(i);
+            var size = this.getBlockInfo(i).size;
             visibleSize += size;
             snapShoot.visibleBlocks.push({
                 index: i,
@@ -210,7 +215,7 @@ export class BlockQueue extends EventBase {
     private getBlockPosition(index: number): number {
         var position = 0;
         for (var i = 0; i < index; i++) {
-            position += this.getBlockSize(i);
+            position += this.getBlockInfo(i).size;
         }
         return position;
     }
@@ -218,7 +223,7 @@ export class BlockQueue extends EventBase {
     private getHeadBlockInfo(offset: number): HeadBlockInfo {
         var totalSize = 0;
         for (var i = 0; i < this._count; i++) {
-            totalSize += this.getBlockSize(i);
+            totalSize += this.getBlockInfo(i).size;
             if (totalSize > offset) {
                 return {
                     index: i,
@@ -236,7 +241,7 @@ export class BlockQueue extends EventBase {
     private getTotalSize(): number {
         var total = 0;
         for (var i = 0; i < this._count; i++) {
-            total += this.getBlockSize(i);
+            total += this.getBlockInfo(i).size;
         }
         return total;
     }
@@ -281,10 +286,13 @@ export enum BlockEvent {
     init = 'init'
 }
 
-interface BlockInfo {
-    index: number;
+interface BlockDataInfo {
     size: number;
-    tag?:object
+    tag?: object;
+}
+
+interface BlockInfo extends BlockDataInfo {
+    index: number;
 }
 
 interface SnapShoot {

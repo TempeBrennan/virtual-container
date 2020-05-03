@@ -122,12 +122,16 @@ export interface RowChangeArgs extends EventArgs {
     recycleRows: Array<RecycleRowInfo>;
 }
 
-export interface RowInfo {
+export interface DataInfo {
+    customData?: object;
+}
+
+export interface RowInfo extends DataInfo{
     rowIndex: number;
     rowHeight: number;
 }
 
-export interface CellInfo {
+export interface CellInfo extends DataInfo{
     columnIndex: number;
     columnPosition: number;
     columnWidth: number;
