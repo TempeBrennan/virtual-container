@@ -1,7 +1,7 @@
 import { EventBase } from "../../common/event-base";
 import { DataModel, DataModelEvent } from "../model/data-model";
 import { VirtualContainerInfo, Direction, EventArgs } from "../../common/common-type";
-import { InitInfoArgs } from "../algorithm/block-queue";
+import { InitInfoArgs, ChangeInfoArgs } from "../algorithm/block-queue";
 
 export class VirtualContainerService extends EventBase {
 
@@ -21,6 +21,20 @@ export class VirtualContainerService extends EventBase {
         this._dataModel.scroll(direction, offset);
     }
 
+    public getCellState(): CellState {
+        var state = this._dataModel.getCurrentCellState();
+        return {
+            totalWidth: state.totalSize,
+            cellInfos: state.blocks.map((i) => {
+                return {
+                    columnIndex: i.index,
+                    columnPosition: i.position,
+                    columnWidth: i.size
+                }
+            })
+        };
+    }
+
     private bindEvent(): void {
         this._dataModel.addEventListener(DataModelEvent.rowInit, (s, e: InitInfoArgs) => {
             this.raise(ServiceEvent.RowInit, <RowInitArgs>{
@@ -30,8 +44,12 @@ export class VirtualContainerService extends EventBase {
                 rowPositions: e.addInfos.map(i => i.position)
             });
         });
-        this._dataModel.addEventListener(DataModelEvent.rowChange, (s, e) => {
-            console.log(e);
+        this._dataModel.addEventListener(DataModelEvent.rowChange, (s: any, e: ChangeInfoArgs) => {
+            this.raise(ServiceEvent.RowChange, <RowChangeArgs>{
+                addRows: e.addInfos.map(i => { return { rowIndex: i.index, position: i.position, rowHeight: i.size } }),
+                removeRows: e.removeInfos.map(i => { return { rowIndex: i.index } }),
+                updateRows: e.updateInfos.map(i => { return { oldRowIndex: i.recyleBlockIndex, newRowIndex: i.index, position: i.position, rowHeight: i.size } })
+            });
         });
         this._dataModel.addEventListener(DataModelEvent.colInit, (s, e: InitInfoArgs) => {
             this.raise(ServiceEvent.ColInit, <ColumnInitArgs>{
@@ -51,6 +69,7 @@ export class VirtualContainerService extends EventBase {
 export enum ServiceEvent {
     RowInit = 'rowinit',
     ColInit = 'colinit',
+    RowChange = 'rowchange',
 }
 
 export interface RowInitArgs extends EventArgs {
@@ -65,4 +84,37 @@ export interface ColumnInitArgs extends EventArgs {
     colWidth: number;
     totalWidth: number;
     colPositions: Array<number>
+}
+
+export interface RowChangeArgs extends EventArgs {
+    addRows: Array<AddRowInfo>;
+    removeRows: Array<RowInfo>;
+    updateRows: Array<UpdateRowInfo>;
+}
+
+export interface RowInfo {
+    rowIndex: number;
+    rowHeight: number;
+}
+
+export interface CellInfo {
+    columnIndex: number;
+    columnPosition: number;
+    columnWidth: number;
+}
+
+export interface AddRowInfo extends RowInfo {
+    position: number;
+}
+
+export interface UpdateRowInfo extends EventArgs {
+    oldRowIndex: number;
+    newRowIndex: number;
+    position: number;
+    rowHeight: number;
+}
+
+export interface CellState {
+    totalWidth: number;
+    cellInfos: Array<CellInfo>;
 }

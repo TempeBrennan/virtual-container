@@ -1,5 +1,5 @@
 import { EventBase } from "../../common/event-base";
-import { BlockQueue, BlockEvent } from "../algorithm/block-queue";
+import { BlockQueue, BlockEvent, CurrentBlocks } from "../algorithm/block-queue";
 import { VirtualContainerInfo, Direction } from "../../common/common-type";
 
 export class DataModel extends EventBase {
@@ -47,6 +47,10 @@ export class DataModel extends EventBase {
 
     public changeColumnWidth(colIndex: number, colWidth: number): void {
         this._colModel.setBlockSize(colIndex, colWidth);
+    }
+
+    public getCurrentCellState(): CurrentBlocks {
+        return this._colModel.getCurrentBlockState();
     }
 
     private initModel(containerInfo: VirtualContainerInfo): void {

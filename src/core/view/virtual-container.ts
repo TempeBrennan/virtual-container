@@ -1,4 +1,4 @@
-import { VirtualContainerService, ServiceEvent, RowInitArgs, ColumnInitArgs } from "../service/virtual-container.service";
+import { VirtualContainerService, ServiceEvent, RowInitArgs, ColumnInitArgs, RowChangeArgs, CellInfo, CellState } from "../service/virtual-container.service";
 import { VirtualContainerInfo, Direction } from "../../common/common-type";
 
 export class VirtualContainer {
@@ -66,6 +66,22 @@ export class VirtualContainer {
         virtualCanvas.appendChild(fragement);
     }
 
+    private insertRowElement(rowIndex: number, rowHeight: number, rowPosition: number, totalWidth: number, cellInfos: Array<CellInfo>): void {
+        var virtualCanvas = this._container.querySelector(`.${this.getVirtualCanvasClassName()}`);
+        var rowElement = this.createRowElement(rowIndex, rowHeight, rowPosition);
+
+        var rowVirtualCanvas = this.createVirtualCanvas(totalWidth, Direction.horizontal);
+        rowVirtualCanvas.appendChild(this.createCellList(cellInfos));
+        rowElement.appendChild(rowElement);
+
+        virtualCanvas.appendChild(rowElement);
+    }
+
+    private removeRowElement(rowIndex: number): void {
+        var virtualCanvas = this._container.querySelector(`.${this.getVirtualCanvasClassName()}`);
+        virtualCanvas.removeChild(this.getRowElement(rowIndex));
+    }
+
     private createRowElement(rowIndex: number, rowHeight: number, rowPosition: number): HTMLDivElement {
         var rowElement = document.createElement('div');
         rowElement.classList.add(this.getRowClassName());
@@ -75,6 +91,14 @@ export class VirtualContainer {
         rowElement.style.height = `${rowHeight}px`;
         rowElement.style.top = `${rowPosition}px`;
         return rowElement;
+    }
+
+    private createCellList(cellInfos: Array<CellInfo>): DocumentFragment {
+        var fragement = document.createDocumentFragment();
+        for (var i = 0; i < cellInfos.length; i++) {
+            fragement.appendChild(this.createCellElement(i, cellInfos[i].columnPosition, cellInfos[i].columnPosition));
+        }
+        return fragement;
     }
 
     private initColumnElement(totalWidth: number, columnCount: number, columnWidth: number, columnPositions: Array<number>): void {
@@ -119,17 +143,18 @@ export class VirtualContainer {
     //#endregion
 
     //#region row position
-    // public updateRowPosition(oldIndex: number, newIndex: number): void {
-    //     var rowElement = this.getRowElement(oldIndex);
-    //     rowElement.classList.remove(this.getRowIndexClassName(oldIndex));
-    //     rowElement.classList.add(this.getRowIndexClassName(newIndex));
-    //     this.setRowPosition(newIndex);
-    // }
+    private updateRowPosition(oldIndex: number, newIndex: number, rowHeight: number, rowPosition: number): void {
+        var rowElement = this.getRowElement(oldIndex);
+        rowElement.classList.remove(this.getRowIndexClassName(oldIndex));
+        rowElement.classList.add(this.getRowIndexClassName(newIndex));
+        this.setRowPosition(newIndex, rowHeight, rowPosition);
+    }
 
-    // private setRowPosition(rowIndex: number): void {
-    //     var ele = this.getRowElement(rowIndex);
-    //     ele.style.top = `${this._service.getRowPosition(rowIndex, this._rowHeight)}px`;
-    // }
+    private setRowPosition(rowIndex: number, rowHeight: number, rowPosition: number): void {
+        var ele = this.getRowElement(rowIndex);
+        ele.style.top = `${rowPosition}px`;
+        ele.style.height = `${rowHeight}px`;
+    }
 
     // public updateCellPosition(rowElement: HTMLDivElement, oldIndex: number, newIndex: number): void {
     //     var cellElement = this.getCellElement(rowElement, oldIndex);
@@ -161,13 +186,35 @@ export class VirtualContainer {
     }
 
     private bindServiceEvent(): void {
-        this._service.addEventListener(ServiceEvent.RowInit, (s, e: RowInitArgs) => {
-            this.initElement(e.totalHeight);
-            this.initRowElement(e.rowPositions, e.rowHeight);
+        this._service.addEventListener(ServiceEvent.RowInit, this.rowInit.bind(this));
+        this._service.addEventListener(ServiceEvent.ColInit, this.columnInit.bind(this));
+        this._service.addEventListener(ServiceEvent.RowChange, this.rowChange.bind(this));
+    }
+
+    private rowInit(s, e: RowInitArgs): void {
+        this.initElement(e.totalHeight);
+        this.initRowElement(e.rowPositions, e.rowHeight);
+    }
+
+    private columnInit(s, e: ColumnInitArgs): void {
+        this.initColumnElement(e.totalWidth, e.colCount, e.colWidth, e.colPositions);
+    }
+
+    private rowChange(s, e: RowChangeArgs): void {
+        e.updateRows.forEach((r) => {
+            this.updateRowPosition(r.oldRowIndex, r.newRowIndex, r.rowHeight, r.position);
         });
-        this._service.addEventListener(ServiceEvent.ColInit, (s, e: ColumnInitArgs) => {
-            this.initColumnElement(e.totalWidth, e.colCount, e.colWidth, e.colPositions);
+        e.addRows.forEach((r) => {
+            var state = this._service.getCellState();
+            this.insertRowElement(r.rowIndex, r.rowHeight, r.position, state.totalWidth, state.cellInfos);
         });
+        e.removeRows.forEach((r) => {
+            this.removeRowElement(r.rowIndex);
+        });
+    }
+
+    public test(offset: number): void {
+        this._service.scroll(Direction.vertical, offset);
     }
 
 }

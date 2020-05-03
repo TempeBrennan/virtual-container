@@ -54,6 +54,7 @@ export class BlockQueue extends EventBase {
     }
 
     public move(offset: number): void {
+        console.log(offset);
         if (this._offset === offset) {
             return;
         }
@@ -75,13 +76,15 @@ export class BlockQueue extends EventBase {
                 updateInfos.push({
                     recyleBlockIndex: oldRecycleBlocks.pop().index,
                     index: i.index,
-                    position: i.position
+                    position: i.position,
+                    size: i.size
                 });
             } else {
                 /**No recyle Block, have to create new Block */
                 addInfos.push({
                     index: i.index,
-                    position: i.position
+                    position: i.position,
+                    size: i.size
                 });
             }
         });
@@ -90,7 +93,8 @@ export class BlockQueue extends EventBase {
         oldRecycleBlocks.forEach(i => {
             removeInfos.push({
                 index: i.index,
-                position: i.position
+                position: i.position,
+                size: i.size
             });
         });
 
@@ -111,6 +115,14 @@ export class BlockQueue extends EventBase {
         });
     }
 
+    public getCurrentBlockState(): CurrentBlocks {
+        var snapShoot = this.getSnapShoot(this._offset);
+        return {
+            blocks: snapShoot.visibleBlocks,
+            totalSize: this.getTotalSize()
+        }
+    }
+
     //#region BlockInfo
     private getBlockChangeInfo(pre: SnapShoot, cur: SnapShoot): BlockChangeInfo {
         var visibleBlockIndex: Array<number> = [];
@@ -118,15 +130,16 @@ export class BlockQueue extends EventBase {
         var oldRecycleBlocks: Array<BlockPosition> = [];
 
         cur.visibleBlocks.forEach(block => {
-            var index = ArrayHelper.findIndex(pre.visibleBlocks, b => b.index === block.index);
-            if (index !== -1) {
+            var result = ArrayHelper.find(pre.visibleBlocks, b => b.index === block.index);
+            if (result) {
                 /**Block is still visible */
-                visibleBlockIndex.push(index);
+                visibleBlockIndex.push(result.index);
             } else {
                 /**New visible Block is shown*/
                 newVisibleBlocks.push({
                     index: block.index,
-                    position: block.position
+                    position: block.position,
+                    size: block.size
                 })
             }
         });
@@ -135,7 +148,8 @@ export class BlockQueue extends EventBase {
         var oldFreeBlock = pre.visibleBlocks.filter(i => visibleBlockIndex.indexOf(i.index) === -1);
         oldFreeBlock.forEach(i => oldRecycleBlocks.push({
             index: i.index,
-            position: i.position
+            position: i.position,
+            size: i.size
         }));
 
         return {
@@ -151,7 +165,8 @@ export class BlockQueue extends EventBase {
             visibleBlocks: [
                 {
                     index: head.index,
-                    position: this.getBlockPosition(head.index)
+                    position: this.getBlockPosition(head.index),
+                    size: this.getBlockSize(head.index)
                 }
             ]
         };
@@ -163,10 +178,12 @@ export class BlockQueue extends EventBase {
                 return snapShoot;
             }
 
-            visibleSize += this.getBlockSize(i);
+            var size = this.getBlockSize(i);
+            visibleSize += size;
             snapShoot.visibleBlocks.push({
                 index: i,
-                position: this.getBlockPosition(i)
+                position: this.getBlockPosition(i),
+                size: size
             });
         }
         return snapShoot;
@@ -211,6 +228,12 @@ export class BlockQueue extends EventBase {
 export interface BlockPosition {
     index: number;
     position: number;
+    size: number;
+}
+
+export interface CurrentBlocks {
+    blocks: Array<BlockPosition>;
+    totalSize: number;
 }
 
 export interface UpdateBlockInfo extends BlockPosition {
