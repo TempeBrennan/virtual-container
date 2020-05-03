@@ -21,6 +21,10 @@ export class VirtualContainerService extends EventBase {
         this._dataModel.scroll(direction, offset);
     }
 
+    public resizeRow(rowIndex: number, rowHeight: number): void {
+        this._dataModel.changeRowHeight(rowIndex, rowHeight);
+    }
+
     public getCellState(): CellState {
         var state = this._dataModel.getCurrentCellState();
         return {
@@ -48,7 +52,12 @@ export class VirtualContainerService extends EventBase {
             this.raise(ServiceEvent.RowChange, <RowChangeArgs>{
                 addRows: e.addInfos.map(i => { return { rowIndex: i.index, position: i.position, rowHeight: i.size } }),
                 removeRows: e.removeInfos.map(i => { return { rowIndex: i.index } }),
-                updateRows: e.updateInfos.map(i => { return { oldRowIndex: i.recyleBlockIndex, newRowIndex: i.index, position: i.position, rowHeight: i.size } })
+                updateRows: e.updateInfos.map(i => {
+                    return {
+                        oldRowIndex: i.recyleBlockIndex, newRowIndex: i.index,
+                        position: i.position, oldRowHeight: i.recycleBlockSize, newRowHeight: i.size
+                    }
+                })
             });
         });
         this._dataModel.addEventListener(DataModelEvent.colInit, (s, e: InitInfoArgs) => {
@@ -111,7 +120,8 @@ export interface UpdateRowInfo extends EventArgs {
     oldRowIndex: number;
     newRowIndex: number;
     position: number;
-    rowHeight: number;
+    oldRowHeight: number;
+    newRowHeight: number;
 }
 
 export interface CellState {

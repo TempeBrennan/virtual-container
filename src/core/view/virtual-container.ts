@@ -72,7 +72,7 @@ export class VirtualContainer {
 
         var rowVirtualCanvas = this.createVirtualCanvas(totalWidth, Direction.horizontal);
         rowVirtualCanvas.appendChild(this.createCellList(cellInfos));
-        rowElement.appendChild(rowElement);
+        rowElement.appendChild(rowVirtualCanvas);
 
         virtualCanvas.appendChild(rowElement);
     }
@@ -96,7 +96,7 @@ export class VirtualContainer {
     private createCellList(cellInfos: Array<CellInfo>): DocumentFragment {
         var fragement = document.createDocumentFragment();
         for (var i = 0; i < cellInfos.length; i++) {
-            fragement.appendChild(this.createCellElement(i, cellInfos[i].columnPosition, cellInfos[i].columnPosition));
+            fragement.appendChild(this.createCellElement(i, cellInfos[i].columnWidth, cellInfos[i].columnPosition));
         }
         return fragement;
     }
@@ -143,17 +143,21 @@ export class VirtualContainer {
     //#endregion
 
     //#region row position
-    private updateRowPosition(oldIndex: number, newIndex: number, rowHeight: number, rowPosition: number): void {
+    private updateRowPosition(oldIndex: number, newIndex: number, rowPosition: number): void {
         var rowElement = this.getRowElement(oldIndex);
         rowElement.classList.remove(this.getRowIndexClassName(oldIndex));
         rowElement.classList.add(this.getRowIndexClassName(newIndex));
-        this.setRowPosition(newIndex, rowHeight, rowPosition);
+        this.setRowPosition(newIndex, rowPosition);
     }
 
-    private setRowPosition(rowIndex: number, rowHeight: number, rowPosition: number): void {
+    private updateRowHeight(rowIndex: number, rowHeight: number): void {
+        var rowElement = this.getRowElement(rowIndex);
+        rowElement.style.height = `${rowHeight}px`;
+    }
+
+    private setRowPosition(rowIndex: number, rowPosition: number): void {
         var ele = this.getRowElement(rowIndex);
         ele.style.top = `${rowPosition}px`;
-        ele.style.height = `${rowHeight}px`;
     }
 
     // public updateCellPosition(rowElement: HTMLDivElement, oldIndex: number, newIndex: number): void {
@@ -202,7 +206,10 @@ export class VirtualContainer {
 
     private rowChange(s, e: RowChangeArgs): void {
         e.updateRows.forEach((r) => {
-            this.updateRowPosition(r.oldRowIndex, r.newRowIndex, r.rowHeight, r.position);
+            this.updateRowPosition(r.oldRowIndex, r.newRowIndex, r.position);
+            if (r.newRowHeight !== r.oldRowHeight) {
+                this.updateRowHeight(r.newRowIndex, r.newRowHeight);
+            }
         });
         e.addRows.forEach((r) => {
             var state = this._service.getCellState();
@@ -215,6 +222,10 @@ export class VirtualContainer {
 
     public test(offset: number): void {
         this._service.scroll(Direction.vertical, offset);
+    }
+
+    public resizeRow(rowIndex: number, rowHeight: number): void {
+        this._service.resizeRow(rowIndex, rowHeight);
     }
 
 }

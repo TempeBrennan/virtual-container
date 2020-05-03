@@ -8,6 +8,7 @@ export class BlockQueue extends EventBase {
     private _defaultSize: number;
     private _containerSize: number;
     private _offset: number;
+    private _snapShoot: SnapShoot;
 
     constructor(count: number, defaultSize: number, containerSize: number) {
         super();
@@ -38,6 +39,7 @@ export class BlockQueue extends EventBase {
                 size: size
             });
         }
+        this.move(this._offset);
     }
 
     public getBlockSize(index: number): number {
@@ -54,12 +56,7 @@ export class BlockQueue extends EventBase {
     }
 
     public move(offset: number): void {
-        console.log(offset);
-        if (this._offset === offset) {
-            return;
-        }
-
-        var preSnapShoot = this.getSnapShoot(this._offset);
+        var preSnapShoot = this._snapShoot;
         const curSnapShoot = this.getSnapShoot(offset);
 
         var addInfos: Array<BlockPosition> = [];
@@ -73,8 +70,10 @@ export class BlockQueue extends EventBase {
         newVisibleBlocks.forEach(i => {
             if (oldRecycleBlocks.length > 0) {
                 /**First use recyle Block */
+                var oldRecyleBlock = oldRecycleBlocks.pop();
                 updateInfos.push({
-                    recyleBlockIndex: oldRecycleBlocks.pop().index,
+                    recyleBlockIndex: oldRecyleBlock.index,
+                    recycleBlockSize: oldRecyleBlock.size,
                     index: i.index,
                     position: i.position,
                     size: i.size
@@ -99,6 +98,7 @@ export class BlockQueue extends EventBase {
         });
 
         this._offset = offset;
+        this._snapShoot = curSnapShoot;
         this.raise(BlockEvent.change, <ChangeInfoArgs>{
             addInfos: addInfos,
             updateInfos: updateInfos,
@@ -109,6 +109,7 @@ export class BlockQueue extends EventBase {
     public init(): void {
         this._offset = 0;
         var snapShoot = this.getSnapShoot(0);
+        this._snapShoot = snapShoot;
         this.raise(BlockEvent.init, <InitInfoArgs>{
             addInfos: snapShoot.visibleBlocks.map((i) => { return { index: i.index, position: i.position } }),
             totalSize: this.getTotalSize()
@@ -238,7 +239,9 @@ export interface CurrentBlocks {
 
 export interface UpdateBlockInfo extends BlockPosition {
     recyleBlockIndex: number;
+    recycleBlockSize: number;
 }
+
 export interface ChangeInfoArgs extends EventArgs {
     addInfos: Array<BlockPosition>;
     removeInfos: Array<BlockPosition>;
