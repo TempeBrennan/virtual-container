@@ -3,7 +3,7 @@ import { EventBase } from "../../common/event-base";
 import { EventArgs } from "../../common/common-type";
 
 export class BlockQueue extends EventBase {
-    private _sizeArr: Array<BlockInfo> = [];
+    private _blockInfo: Array<BlockInfo> = [];
     private _count: number;
     private _defaultSize: number;
     private _containerSize: number;
@@ -30,11 +30,11 @@ export class BlockQueue extends EventBase {
             return;
         }
 
-        var result = ArrayHelper.find(this._sizeArr, i => i.index === index);
+        var result = ArrayHelper.find(this._blockInfo, i => i.index === index);
         if (result) {
             result.size = size;
         } else {
-            this._sizeArr.push({
+            this._blockInfo.push({
                 index: index,
                 size: size
             });
@@ -47,7 +47,7 @@ export class BlockQueue extends EventBase {
             return 0;
         }
 
-        var result = ArrayHelper.find(this._sizeArr, i => i.index === index);
+        var result = ArrayHelper.find(this._blockInfo, i => i.index === index);
         if (result) {
             return result.size;
         } else {
@@ -284,6 +284,7 @@ export enum BlockEvent {
 interface BlockInfo {
     index: number;
     size: number;
+    tag?:object
 }
 
 interface SnapShoot {
