@@ -57,7 +57,7 @@ export class VirtualContainerService extends EventBase {
                         rowHeight: i.size
                     };
                 }),
-                updateRow: e.updateInfos.map(i => {
+                updateRows: e.updateInfos.map(i => {
                     return {
                         oldRowInfo: {
                             rowIndex: i.oldBlockInfo.index,
@@ -125,9 +125,16 @@ export interface ColumnInitArgs extends EventArgs {
 
 export interface RowChangeArgs extends EventArgs {
     addRows: Array<RowInfo>;
-    updateRow: Array<UpdateRowInfo>;
+    updateRows: Array<UpdateRowInfo>;
     removeRows: Array<RowInfo>;
     recycleRows: Array<UpdateRowInfo>;
+}
+
+export interface CellChangeArgs extends EventArgs {
+    addCells: Array<CellInfo>;
+    updateCells: Array<UpdateCellInfo>;
+    removeCells: Array<CellInfo>;
+    recycleCells: Array<UpdateCellInfo>;
 }
 
 export interface DataInfo {
@@ -156,6 +163,11 @@ export interface RecycleRowInfo extends EventArgs {
 export interface UpdateRowInfo {
     oldRowInfo: RowInfo;
     newRowInfo: RowInfo;
+}
+
+export interface UpdateCellInfo {
+    oldCellInfo: CellInfo;
+    newCellInfo: CellInfo;
 }
 
 export interface CellState {

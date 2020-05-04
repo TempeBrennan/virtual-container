@@ -213,7 +213,7 @@ export class VirtualContainer {
             var state = this._service.getCellState();
             this.insertRowElement(r.rowIndex, r.rowHeight, r.position, state.totalWidth, state.cellInfos);
         });
-        e.updateRow.forEach((r) => {
+        e.updateRows.forEach((r) => {
             if (r.oldRowInfo.rowHeight !== r.newRowInfo.rowHeight) {
                 this.updateRowHeight(r.newRowInfo.rowIndex, r.newRowInfo.rowHeight);
             } else if (r.oldRowInfo.position !== r.newRowInfo.position) {
