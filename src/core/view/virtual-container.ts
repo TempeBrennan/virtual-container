@@ -165,7 +165,7 @@ export class VirtualContainer {
     private createCellList(cellInfos: Array<ColumnInfo>): DocumentFragment {
         var fragement = document.createDocumentFragment();
         for (var i = 0; i < cellInfos.length; i++) {
-            fragement.appendChild(this.createCellElement(i, cellInfos[i].columnWidth, cellInfos[i].position));
+            fragement.appendChild(this.createCellElement(cellInfos[i].columnIndex, cellInfos[i].columnWidth, cellInfos[i].position));
         }
         return fragement;
     }
@@ -237,6 +237,8 @@ export class VirtualContainer {
     //#region Event
     private bindElementEvent(): void {
         this._container.addEventListener('scroll', () => {
+            console.log(`scrollLeft-->${this._container.scrollLeft}`);
+            console.log(`scrollTop-->${this._container.scrollTop}`);
             this._service.scroll(Direction.horizontal, this._container.scrollLeft);
             this._service.scroll(Direction.vertical, this._container.scrollTop);
         });
