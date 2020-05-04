@@ -181,13 +181,19 @@ export class VirtualContainer {
 
     //#region Delete
     private removeCellElement(rowIndex: number, columnIndex: number): void {
-        var rowElement = this.getRowElement(rowIndex);
-        var cellElement = this.getCellElement(rowElement, columnIndex);
-        rowElement.removeChild(cellElement);
+        var rowCanvas = this.getRowCanvas(rowIndex);
+        var cellElement = this.getCellElement(rowCanvas, columnIndex);
+        rowCanvas.removeChild(cellElement);
     }
     //#endregion
 
     //#region Update
+    private insertCellElement(rowIndex: number, columnIndex: number, columnWidth: number, columnPosition: number): void {
+        var rowCanvas = this.getRowCanvas(rowIndex);
+        var cellElement = this.createCellElement(columnIndex, columnWidth, columnPosition);
+        rowCanvas.appendChild(cellElement);
+    }
+
     private updateColumnIndex(rowIndex: number, oldCellIndex: number, newCellIndex: number): void {
         var cellElement = this.getCellElement(this.getRowElement(rowIndex), oldCellIndex);
         cellElement.classList.remove(this.getCellIndexClassName(oldCellIndex));
@@ -209,6 +215,11 @@ export class VirtualContainer {
     //#region Select
     private getCellElement(rowElement: HTMLDivElement, columnIndex: number): HTMLDivElement {
         return rowElement.querySelector(`.${this.getCellIndexClassName(columnIndex)}`);
+    }
+
+    private getRowCanvas(rowIndex: number): HTMLDivElement {
+        var rowElement = this.getRowElement(rowIndex);
+        return rowElement.querySelector(`.${this.getCellIndexClassName(rowIndex)}`);
     }
     //#endregion
 
@@ -243,16 +254,17 @@ export class VirtualContainer {
             this.insertRowElement(r.rowIndex, r.rowHeight, r.position, state.totalWidth, state.columnInfos);
         });
         e.updateRows.forEach((r) => {
+            /**Update row index */
+            if (r.oldRowInfo.rowIndex !== r.newRowInfo.rowIndex) {
+                this.updateRowIndex(r.oldRowInfo.rowIndex, r.newRowInfo.rowIndex);
+            }
+
             if (r.oldRowInfo.rowHeight !== r.newRowInfo.rowHeight) {
                 this.setRowHeight(r.newRowInfo.rowIndex, r.newRowInfo.rowHeight);
             } else if (r.oldRowInfo.position !== r.newRowInfo.position) {
                 this.setRowPosition(r.newRowInfo.rowIndex, r.newRowInfo.position);
             }
 
-            /**Update row index */
-            if (r.oldRowInfo.rowIndex !== r.newRowInfo.rowIndex) {
-                this.updateRowIndex(r.oldRowInfo.rowIndex, r.newRowInfo.rowIndex);
-            }
         });
         e.removeRows.forEach((r) => {
             this.removeRowElement(r.rowIndex);
@@ -260,19 +272,20 @@ export class VirtualContainer {
     }
 
     private columnChange(s, e: ColumnChangeArgs): void {
-        // e.addColumns.forEach((r) => {
-        //     this.insertRowElement(r.rowIndex, r.rowHeight, r.position, state.totalWidth, state.cellInfos);
-        // });
-        // e.updateColumns.forEach((r) => {
-        //     if (r.oldRowInfo.rowHeight !== r.newRowInfo.rowHeight) {
-        //         this.setRowHeight(r.newRowInfo.rowIndex, r.newRowInfo.rowHeight);
-        //     } else if (r.oldRowInfo.position !== r.newRowInfo.position) {
-        //         this.setRowPosition(r.newRowInfo.rowIndex, r.newRowInfo.position);
-        //     }
-        // });
-        // e.removeColumns.forEach((r) => {
-        //     this.removeRowElement(r.rowIndex);
-        // });
+        var rowState = this._service.getRowState();
+        e.addColumns.forEach((c) => {
+            rowState.rowInfos.forEach(r => {
+                this.insertCellElement(r.rowIndex, c.columnIndex, c.columnWidth, r.position);
+            });
+        });
+        e.updateColumns.forEach((r) => {
+
+        });
+        e.removeColumns.forEach((r) => {
+            rowState.rowInfos.forEach(c => {
+                this.removeCellElement(c.rowIndex, r.columnIndex);
+            });
+        });
     }
     //#endregion
 
