@@ -219,7 +219,7 @@ export class VirtualContainer {
 
     private getRowCanvas(rowIndex: number): HTMLDivElement {
         var rowElement = this.getRowElement(rowIndex);
-        return rowElement.querySelector(`.${this.getCellIndexClassName(rowIndex)}`);
+        return rowElement.querySelector(`.${this.getVirtualCanvasClassName()}`);
     }
     //#endregion
 
@@ -237,7 +237,7 @@ export class VirtualContainer {
     //#region Event
     private bindElementEvent(): void {
         this._container.addEventListener('scroll', () => {
-            // this._service.scroll(Direction.horizontal, this._container.scrollLeft);
+            this._service.scroll(Direction.horizontal, this._container.scrollLeft);
             this._service.scroll(Direction.vertical, this._container.scrollTop);
         });
     }
@@ -246,6 +246,7 @@ export class VirtualContainer {
         this._service.addEventListener(ServiceEvent.RowInit, this.rowInit.bind(this));
         this._service.addEventListener(ServiceEvent.ColInit, this.columnInit.bind(this));
         this._service.addEventListener(ServiceEvent.RowChange, this.rowChange.bind(this));
+        this._service.addEventListener(ServiceEvent.ColChange, this.columnChange.bind(this));
     }
 
     private rowChange(s, e: RowChangeArgs): void {
@@ -275,15 +276,25 @@ export class VirtualContainer {
         var rowState = this._service.getRowState();
         e.addColumns.forEach((c) => {
             rowState.rowInfos.forEach(r => {
-                this.insertCellElement(r.rowIndex, c.columnIndex, c.columnWidth, r.position);
+                this.insertCellElement(r.rowIndex, c.columnIndex, c.columnWidth, c.position);
             });
         });
-        e.updateColumns.forEach((r) => {
+        e.updateColumns.forEach((c) => {
+            rowState.rowInfos.forEach(r => {
+                if (c.oldColumnInfo.columnIndex !== c.newColumnInfo.columnIndex) {
+                    this.updateColumnIndex(r.rowIndex, c.oldColumnInfo.columnIndex, c.newColumnInfo.columnIndex);
+                }
 
+                if (c.oldColumnInfo.columnWidth !== c.newColumnInfo.columnWidth) {
+                    this.setColumnWidth(r.rowIndex, c.newColumnInfo.columnIndex, c.newColumnInfo.columnWidth);
+                } else if (c.oldColumnInfo.position !== c.newColumnInfo.position) {
+                    this.setColumnPosition(r.rowIndex, c.newColumnInfo.columnIndex, c.newColumnInfo.position);
+                }
+            });
         });
-        e.removeColumns.forEach((r) => {
-            rowState.rowInfos.forEach(c => {
-                this.removeCellElement(c.rowIndex, r.columnIndex);
+        e.removeColumns.forEach((c) => {
+            rowState.rowInfos.forEach(r => {
+                this.removeCellElement(r.rowIndex, c.columnIndex);
             });
         });
     }
