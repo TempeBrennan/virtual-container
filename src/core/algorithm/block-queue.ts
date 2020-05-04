@@ -52,10 +52,12 @@ export class BlockQueue extends EventBase {
         const curSnapShoot = this.getSnapShoot(offset);
 
         var addInfos: Array<BlockPosition> = [];
+        var updateInfos: Array<UpdateBlockInfo> = [];
         var removeInfos: Array<BlockPosition> = [];
-        var recycleInfos: Array<RecycleBlockInfo> = [];
 
         var blockChangeInfo = this.getBlockChangeInfo(preSnapShoot, curSnapShoot);
+        /**Push block list need update size or position */
+        updateInfos = updateInfos.concat(blockChangeInfo.updateVisibleBlocks);
         var newVisibleBlocks = blockChangeInfo.newVisibleBlocks;
         var oldRecycleBlocks = blockChangeInfo.oldRecycleBlocks;
 
@@ -63,13 +65,17 @@ export class BlockQueue extends EventBase {
             if (oldRecycleBlocks.length > 0) {
                 /**First use recyle Block */
                 var oldRecyleBlock = oldRecycleBlocks.pop();
-                recycleInfos.push({
-                    recyleBlockIndex: oldRecyleBlock.index,
-                    recycleBlockSize: oldRecyleBlock.size,
-                    recyclePosition: oldRecyleBlock.position,
-                    index: i.index,
-                    position: i.position,
-                    size: i.size
+                updateInfos.push({
+                    oldBlockInfo: {
+                        index: oldRecyleBlock.index,
+                        position: oldRecyleBlock.position,
+                        size: oldRecyleBlock.size
+                    },
+                    newBlockInfo: {
+                        index: i.index,
+                        position: i.position,
+                        size: i.size
+                    }
                 });
             } else {
                 /**No recyle Block, have to create new Block */
@@ -94,9 +100,8 @@ export class BlockQueue extends EventBase {
         this._snapShoot = curSnapShoot;
         this.raise(BlockEvent.change, <ChangeInfoArgs>{
             addInfos: addInfos,
-            updateInfos: blockChangeInfo.updateVisibleBlocks,
+            updateInfos: updateInfos,
             removeInfos: removeInfos,
-            recycleInfos: recycleInfos,
         });
     }
 
@@ -266,12 +271,6 @@ export interface CurrentBlocks {
     totalSize: number;
 }
 
-export interface RecycleBlockInfo extends BlockPosition {
-    recyleBlockIndex: number;
-    recycleBlockSize: number;
-    recyclePosition: number;
-}
-
 export interface UpdateBlockInfo {
     oldBlockInfo: BlockPosition;
     newBlockInfo: BlockPosition;
@@ -281,7 +280,6 @@ export interface ChangeInfoArgs extends EventArgs {
     addInfos: Array<BlockPosition>;
     updateInfos: Array<UpdateBlockInfo>;
     removeInfos: Array<BlockPosition>;
-    recycleInfos: Array<RecycleBlockInfo>;
 }
 
 export interface InitInfoArgs extends EventArgs {

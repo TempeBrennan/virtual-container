@@ -34,8 +34,12 @@ export class DataModel extends EventBase {
         return this._colModel.getDefaultSize();
     }
 
-    public getCurrentCellState(): CurrentBlocks {
+    public getColumnState(): CurrentBlocks {
         return this._colModel.getCurrentBlockState();
+    }
+
+    public getRowState(): CurrentBlocks {
+        return this._rowModel.getCurrentBlockState();
     }
 
     public getRowCustomData(index: number): object {

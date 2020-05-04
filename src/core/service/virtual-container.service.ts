@@ -25,15 +25,29 @@ export class VirtualContainerService extends EventBase {
         this._dataModel.changeRowHeight(rowIndex, rowHeight);
     }
 
-    public getCellState(): CellState {
-        var state = this._dataModel.getCurrentCellState();
+    public getColumnState(): ColumnState {
+        var state = this._dataModel.getColumnState();
         return {
             totalWidth: state.totalSize,
-            cellInfos: state.blocks.map((i) => {
+            columnInfos: state.blocks.map((i) => {
                 return {
                     columnIndex: i.index,
                     position: i.position,
                     columnWidth: i.size
+                }
+            })
+        };
+    }
+
+    public getRowState(): RowState {
+        var state = this._dataModel.getRowState();
+        return {
+            totalHeight: state.totalSize,
+            rowInfos: state.blocks.map((i) => {
+                return {
+                    rowIndex: i.index,
+                    position: i.position,
+                    rowHeight: i.size
                 }
             })
         };
@@ -71,21 +85,7 @@ export class VirtualContainerService extends EventBase {
                         }
                     };
                 }),
-                removeRows: e.removeInfos.map(i => { return { rowIndex: i.index } }),
-                recycleRows: e.recycleInfos.map(i => {
-                    return {
-                        oldRowInfo: {
-                            rowIndex: i.recyleBlockIndex,
-                            rowHeight: i.recycleBlockSize,
-                            position: i.position
-                        },
-                        newRowInfo: {
-                            rowIndex: i.index,
-                            rowHeight: i.size,
-                            position: i.position
-                        }
-                    }
-                })
+                removeRows: e.removeInfos.map(i => { return { rowIndex: i.index } })
             });
         });
         this._dataModel.addEventListener(DataModelEvent.colInit, (s, e: InitInfoArgs) => {
@@ -96,8 +96,31 @@ export class VirtualContainerService extends EventBase {
                 colPositions: e.addInfos.map(i => i.position)
             });
         });
-        this._dataModel.addEventListener(DataModelEvent.colChange, (s, e) => {
-            console.log(e);
+        this._dataModel.addEventListener(DataModelEvent.colChange, (s, e: ChangeInfoArgs) => {
+            this.raise(ServiceEvent.ColChange, <ColumnChangeArgs>{
+                addColumns: e.addInfos.map(i => {
+                    return {
+                        columnIndex: i.index,
+                        position: i.position,
+                        columnWidth: i.size
+                    };
+                }),
+                updateColumns: e.updateInfos.map(i => {
+                    return {
+                        oldColumnInfo: {
+                            columnIndex: i.oldBlockInfo.index,
+                            columnWidth: i.oldBlockInfo.size,
+                            position: i.oldBlockInfo.position
+                        },
+                        newColumnInfo: {
+                            columnIndex: i.newBlockInfo.index,
+                            columnWidth: i.newBlockInfo.size,
+                            position: i.newBlockInfo.position
+                        }
+                    };
+                }),
+                removeColumns: e.removeInfos.map(i => { return { columnIndex: i.index } })
+            });
         });
     }
 
@@ -107,6 +130,7 @@ export enum ServiceEvent {
     RowInit = 'rowinit',
     ColInit = 'colinit',
     RowChange = 'rowchange',
+    ColChange = 'colchange'
 }
 
 export interface RowInitArgs extends EventArgs {
@@ -127,14 +151,12 @@ export interface RowChangeArgs extends EventArgs {
     addRows: Array<RowInfo>;
     updateRows: Array<UpdateRowInfo>;
     removeRows: Array<RowInfo>;
-    recycleRows: Array<UpdateRowInfo>;
 }
 
-export interface CellChangeArgs extends EventArgs {
-    addCells: Array<CellInfo>;
-    updateCells: Array<UpdateCellInfo>;
-    removeCells: Array<CellInfo>;
-    recycleCells: Array<UpdateCellInfo>;
+export interface ColumnChangeArgs extends EventArgs {
+    addColumns: Array<ColumnInfo>;
+    updateColumns: Array<UpdateColumnInfo>;
+    removeColumns: Array<ColumnInfo>;
 }
 
 export interface DataInfo {
@@ -147,17 +169,9 @@ export interface RowInfo extends DataInfo {
     rowHeight: number;
 }
 
-export interface CellInfo extends DataInfo {
+export interface ColumnInfo extends DataInfo {
     columnIndex: number;
     columnWidth: number;
-}
-
-export interface RecycleRowInfo extends EventArgs {
-    oldRowIndex: number;
-    newRowIndex: number;
-    position: number;
-    oldRowHeight: number;
-    newRowHeight: number;
 }
 
 export interface UpdateRowInfo {
@@ -165,12 +179,17 @@ export interface UpdateRowInfo {
     newRowInfo: RowInfo;
 }
 
-export interface UpdateCellInfo {
-    oldCellInfo: CellInfo;
-    newCellInfo: CellInfo;
+export interface UpdateColumnInfo {
+    oldColumnInfo: ColumnInfo;
+    newColumnInfo: ColumnInfo;
 }
 
-export interface CellState {
+export interface ColumnState {
     totalWidth: number;
-    cellInfos: Array<CellInfo>;
+    columnInfos: Array<ColumnInfo>;
+}
+
+export interface RowState {
+    totalHeight: number;
+    rowInfos: Array<RowInfo>;
 }
