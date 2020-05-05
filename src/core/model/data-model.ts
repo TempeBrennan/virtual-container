@@ -42,14 +42,6 @@ export class DataModel extends EventBase {
         return this._rowModel.getCurrentBlockState();
     }
 
-    public getRowCustomData(index: number): object {
-        return this._rowModel.getBlockTag(index);
-    }
-
-    public getColumnCustomData(index: number): object {
-        return this._colModel.getBlockTag(index);
-    }
-
     public scroll(direction: Direction, offset: number): void {
         if (direction === Direction.horizontal) {
             this._colModel.move(offset);

@@ -1,13 +1,26 @@
-import { VirtualContainerService, ServiceEvent, RowInitArgs, ColumnInitArgs, RowChangeArgs, ColumnInfo, ColumnState, ColumnChangeArgs } from "../service/virtual-container.service";
-import { VirtualContainerInfo, Direction } from "../../common/common-type";
+import { VirtualContainerService, ServiceEvent, RowInitArgs, ColumnInitArgs, RowChangeArgs, ColumnInfo, ColumnState, ColumnChangeArgs, RowInfo } from "../service/virtual-container.service";
+import { VirtualContainerInfo, Direction, EventArgs } from "../../common/common-type";
+import { EventBase } from "../../common/event-base";
 
-export class VirtualContainer {
+export class VirtualContainer extends EventBase {
     private _container: HTMLDivElement;
     private _service: VirtualContainerService;
 
     constructor(container: HTMLDivElement, containerInfo: VirtualContainerInfo) {
+        super();
         this.init(container, containerInfo);
     }
+
+    //#region Public
+    public resizeRow(rowIndex: number, rowHeight: number): void {
+        this._service.resizeRow(rowIndex, rowHeight);
+    }
+
+    public resizeColumn(columnIndex: number, columnWidth: number): void {
+        this._service.resizeColumn(columnIndex, columnWidth);
+    }
+
+    //#endregion
 
     //#region Init
     private init(container: HTMLDivElement, containerInfo: VirtualContainerInfo): void {
@@ -24,6 +37,8 @@ export class VirtualContainer {
 
     private columnInit(s, e: ColumnInitArgs): void {
         this.initColumnElement(e.totalWidth, e.colCount, e.colWidth, e.colPositions);
+        this.raise(VirtualContainerEvent.update,
+            this.createChangeArgs(this._service.getRowState().rowInfos, this._service.getColumnState().columnInfos));
     }
     //#endregion
 
@@ -158,7 +173,6 @@ export class VirtualContainer {
         cellElement.style.width = `${columnWidth}px`;
         cellElement.style.height = `100%`;
         cellElement.style.left = `${columnPosition}px`;
-        cellElement.innerHTML = columnIndex.toString();
         return cellElement;
     }
 
@@ -208,7 +222,6 @@ export class VirtualContainer {
     private setColumnPosition(rowIndex: number, colIndex: number, position: number): void {
         var ele = this.getCellElement(this.getRowElement(rowIndex), colIndex);
         ele.style.left = `${position}px`;
-        ele.innerHTML = colIndex.toString();
     }
     //#endregion
 
@@ -237,8 +250,6 @@ export class VirtualContainer {
     //#region Event
     private bindElementEvent(): void {
         this._container.addEventListener('scroll', () => {
-            console.log(`scrollLeft-->${this._container.scrollLeft}`);
-            console.log(`scrollTop-->${this._container.scrollTop}`);
             this._service.scroll(Direction.horizontal, this._container.scrollLeft);
             this._service.scroll(Direction.vertical, this._container.scrollTop);
         });
@@ -252,9 +263,13 @@ export class VirtualContainer {
     }
 
     private rowChange(s, e: RowChangeArgs): void {
+        var state = this._service.getColumnState();
+        var columnInfos: Array<ColumnInfo> = state.columnInfos;
+        var rowInfos: Array<RowInfo> = [];
+
         e.addRows.forEach((r) => {
-            var state = this._service.getColumnState();
-            this.insertRowElement(r.rowIndex, r.rowHeight, r.position, state.totalWidth, state.columnInfos);
+            this.insertRowElement(r.rowIndex, r.rowHeight, r.position, state.totalWidth, columnInfos);
+            rowInfos.push(r);
         });
         e.updateRows.forEach((r) => {
             /**Update row index */
@@ -267,22 +282,28 @@ export class VirtualContainer {
             } else if (r.oldRowInfo.position !== r.newRowInfo.position) {
                 this.setRowPosition(r.newRowInfo.rowIndex, r.newRowInfo.position);
             }
+            rowInfos.push(r.newRowInfo);
 
         });
         e.removeRows.forEach((r) => {
             this.removeRowElement(r.rowIndex);
         });
+
+        this.raise(VirtualContainerEvent.update, this.createChangeArgs(rowInfos, columnInfos));
     }
 
     private columnChange(s, e: ColumnChangeArgs): void {
         var rowState = this._service.getRowState();
+        var rowInfos: Array<RowInfo> = rowState.rowInfos;
+        var columnInfos: Array<ColumnInfo> = [];
         e.addColumns.forEach((c) => {
-            rowState.rowInfos.forEach(r => {
+            rowInfos.forEach(r => {
                 this.insertCellElement(r.rowIndex, c.columnIndex, c.columnWidth, c.position);
+                columnInfos.push(c);
             });
         });
         e.updateColumns.forEach((c) => {
-            rowState.rowInfos.forEach(r => {
+            rowInfos.forEach(r => {
                 if (c.oldColumnInfo.columnIndex !== c.newColumnInfo.columnIndex) {
                     this.updateColumnIndex(r.rowIndex, c.oldColumnInfo.columnIndex, c.newColumnInfo.columnIndex);
                 }
@@ -292,19 +313,36 @@ export class VirtualContainer {
                 } else if (c.oldColumnInfo.position !== c.newColumnInfo.position) {
                     this.setColumnPosition(r.rowIndex, c.newColumnInfo.columnIndex, c.newColumnInfo.position);
                 }
+                columnInfos.push(c.newColumnInfo);
             });
         });
         e.removeColumns.forEach((c) => {
-            rowState.rowInfos.forEach(r => {
+            rowInfos.forEach(r => {
                 this.removeCellElement(r.rowIndex, c.columnIndex);
             });
         });
+        this.raise(VirtualContainerEvent.update, this.createChangeArgs(rowInfos, columnInfos));
+    }
+
+    private createChangeArgs(rowInfos: Array<RowInfo>, columnInfos: Array<ColumnInfo>): ChangeArgs {
+        var cellInfoList: Array<CellInfo> = [];
+        columnInfos.sort((a, b) => a.columnIndex - b.columnIndex);
+
+        rowInfos.sort((a, b) => a.rowIndex - b.rowIndex).forEach((r) => {
+            columnInfos.forEach((c) => {
+                cellInfoList.push({
+                    rowIndex: r.rowIndex,
+                    columnIndex: c.columnIndex,
+                    element: this.getCellElement(this.getRowElement(r.rowIndex), c.columnIndex)
+                });
+            });
+
+        });
+        return <ChangeArgs>{
+            cellList: cellInfoList
+        };
     }
     //#endregion
-
-    public resizeRow(rowIndex: number, rowHeight: number): void {
-        this._service.resizeRow(rowIndex, rowHeight);
-    }
 
 }
 
@@ -312,4 +350,18 @@ export interface VirtualContainerConfig {
     element: HTMLDivElement;
     rowCount: number;
     rowHeight?: number;
+}
+
+export enum VirtualContainerEvent {
+    update = 'update'
+}
+
+export interface CellInfo {
+    rowIndex: number;
+    columnIndex: number;
+    element: HTMLDivElement;
+}
+
+export interface ChangeArgs extends EventArgs {
+    cellList: Array<CellInfo>;
 }

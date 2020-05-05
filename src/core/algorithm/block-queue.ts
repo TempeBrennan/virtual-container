@@ -22,10 +22,6 @@ export class BlockQueue extends EventBase {
         return this._defaultBlockInfo.size;
     }
 
-    public getBlockTag(index: number): object {
-        return this.getBlockInfo(index).tag;
-    }
-
     public getCount(): number {
         return this._count;
     }
@@ -294,7 +290,6 @@ export enum BlockEvent {
 
 interface BlockDataInfo {
     size: number;
-    tag?: object;
 }
 
 interface BlockInfo extends BlockDataInfo {

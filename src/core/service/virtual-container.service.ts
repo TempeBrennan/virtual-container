@@ -13,6 +13,7 @@ export class VirtualContainerService extends EventBase {
         this.bindEvent();
     }
 
+    //#region Public
     public init(): void {
         this._dataModel.init();
     }
@@ -23,6 +24,10 @@ export class VirtualContainerService extends EventBase {
 
     public resizeRow(rowIndex: number, rowHeight: number): void {
         this._dataModel.changeRowHeight(rowIndex, rowHeight);
+    }
+
+    public resizeColumn(columnIndex: number, columnWidth: number): void {
+        this._dataModel.changeColumnWidth(columnIndex, columnWidth);
     }
 
     public getColumnState(): ColumnState {
@@ -52,6 +57,7 @@ export class VirtualContainerService extends EventBase {
             })
         };
     }
+    //#endregion
 
     private bindEvent(): void {
         this._dataModel.addEventListener(DataModelEvent.rowInit, (s, e: InitInfoArgs) => {
