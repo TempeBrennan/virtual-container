@@ -12,14 +12,26 @@
 <body>
     <div id="container"></div>
     <script>
-        var a = new Cyz.VirtualContainer(document.querySelector('#container'), {
-            rowCount: 5000,
-            colCount: 5000,
+        var virtualContainer = new Cyz.VirtualContainer(document.querySelector('#container'), {
+            rowCount: 50000,
+            colCount: 50000,
             rowHeight: 30,
             colWidth: 80,
             width: document.querySelector('#container').offsetWidth,
             height: document.querySelector('#container').offsetHeight
         });
+
+        virtualContainer.addEventListener('update', function (s, e) {
+            e.cellList.forEach(c => {
+                c.element.innerHTML = this.getData(c.rowIndex, c.columnIndex);
+            });
+        });
+
+        virtualContainer.init();
+
+        function getData(rowIndex, columnIndex) {
+            return `(${rowIndex + 1},${columnIndex + 1})`;
+        }
 
     </script>
 </body>

@@ -4,11 +4,13 @@ import { EventBase } from "../../common/event-base";
 
 export class VirtualContainer extends EventBase {
     private _container: HTMLDivElement;
+    private _containerInfo: VirtualContainerInfo;
     private _service: VirtualContainerService;
 
     constructor(container: HTMLDivElement, containerInfo: VirtualContainerInfo) {
         super();
-        this.init(container, containerInfo);
+        this._container = container;
+        this._containerInfo = containerInfo;
     }
 
     //#region Public
@@ -20,16 +22,17 @@ export class VirtualContainer extends EventBase {
         this._service.resizeColumn(columnIndex, columnWidth);
     }
 
-    //#endregion
-
-    //#region Init
-    private init(container: HTMLDivElement, containerInfo: VirtualContainerInfo): void {
-        this._service = new VirtualContainerService(containerInfo);
-        this._container = container;
+    public init(): void {
+        this._service = new VirtualContainerService(this._containerInfo);
+        this._container = this._container;
         this.bindElementEvent();
         this.bindServiceEvent();
         this._service.init();
     }
+    //#endregion
+
+    //#region Init
+
     private rowInit(s, e: RowInitArgs): void {
         this.initElement(e.totalHeight);
         this.initRowElement(e.rowPositions, e.rowHeight);
@@ -37,8 +40,7 @@ export class VirtualContainer extends EventBase {
 
     private columnInit(s, e: ColumnInitArgs): void {
         this.initColumnElement(e.totalWidth, e.colCount, e.colWidth, e.colPositions);
-        this.raise(VirtualContainerEvent.update,
-            this.createChangeArgs(this._service.getRowState().rowInfos, this._service.getColumnState().columnInfos));
+        this.raiseUpdateEvent(this._service.getRowState().rowInfos, this._service.getColumnState().columnInfos);
     }
     //#endregion
 
@@ -289,7 +291,8 @@ export class VirtualContainer extends EventBase {
             this.removeRowElement(r.rowIndex);
         });
 
-        this.raise(VirtualContainerEvent.update, this.createChangeArgs(rowInfos, columnInfos));
+        this.raiseUpdateEvent(rowInfos, columnInfos);
+
     }
 
     private columnChange(s, e: ColumnChangeArgs): void {
@@ -321,7 +324,7 @@ export class VirtualContainer extends EventBase {
                 this.removeCellElement(r.rowIndex, c.columnIndex);
             });
         });
-        this.raise(VirtualContainerEvent.update, this.createChangeArgs(rowInfos, columnInfos));
+        this.raiseUpdateEvent(rowInfos, columnInfos);
     }
 
     private createChangeArgs(rowInfos: Array<RowInfo>, columnInfos: Array<ColumnInfo>): ChangeArgs {
@@ -341,6 +344,14 @@ export class VirtualContainer extends EventBase {
         return <ChangeArgs>{
             cellList: cellInfoList
         };
+    }
+
+    private raiseUpdateEvent(rowInfos: Array<RowInfo>, columnInfos: Array<ColumnInfo>): void {
+        if (rowInfos.length === 0 || columnInfos.length === 0) {
+            return;
+        }
+        this.raise(VirtualContainerEvent.update, this.createChangeArgs(rowInfos, columnInfos));
+
     }
     //#endregion
 
