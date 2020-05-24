@@ -1,0 +1,26 @@
+{
+  "name": "virtual-container",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [
+    "virtual container",
+    "big data grid",
+    "dom recycle",
+    "large data sheet",
+    "listbox listview spreadsheet"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TempeBrennan/virtual-container.git"
+  },
+  "bugs": {
+    "url": "https://github.com/TempeBrennan/virtual-container/issues"
+  },
+  "homepage": "https://github.com/TempeBrennan/virtual-container#readme",
+  "author": {
+    "name": "ChenYingzuo",
+    "email": "425751342@qq.com"
+  },
+  "license": "MIT"
+}

@@ -3,10 +3,10 @@ module.exports = function (env, argv) {
         entry: __dirname + "/main.ts",
         mode: env.production ? 'production' : 'development',
         output: {
-            path: __dirname + "/output",
-            filename: "bundle.js",
+            path: env.production ? __dirname + "/npm/JS" : __dirname + "/output",
+            filename: "virtual-container.js",
             library: 'Cyz',
-            libraryTarget: env.production ? 'window' : 'window'
+            libraryTarget: env.production ? 'umd' : 'window'
         },
         resolve: {
             extensions: ['.ts', '.js']
