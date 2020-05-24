@@ -10,7 +10,11 @@ export class BlockQueue extends EventBase {
     private _offset: number;
     private _snapShoot: SnapShoot;
 
-    constructor(count: number, containerSize: number, defaultBlockInfo: BlockDataInfo) {
+    constructor(
+        count: number,
+        containerSize: number,
+        defaultBlockInfo: BlockDataInfo
+    ) {
         super();
         this._count = count;
         this._containerSize = containerSize;
@@ -31,19 +35,20 @@ export class BlockQueue extends EventBase {
             return;
         }
 
-        var result = ArrayHelper.find(this._blockInfo, i => i.index === index);
+        var result = ArrayHelper.find(this._blockInfo, (i) => i.index === index);
         if (result) {
             result.size = size;
         } else {
             this._blockInfo.push({
                 index: index,
-                size: size
+                size: size,
             });
         }
         this.move(this._offset);
     }
 
     public move(offset: number): void {
+        offset = this.getActualOffset(offset);
         const preSnapShoot = this._snapShoot;
         const curSnapShoot = this.getSnapShoot(offset);
 
@@ -57,7 +62,7 @@ export class BlockQueue extends EventBase {
         var newVisibleBlocks = blockChangeInfo.newVisibleBlocks;
         var oldRecycleBlocks = blockChangeInfo.oldRecycleBlocks;
 
-        newVisibleBlocks.forEach(i => {
+        newVisibleBlocks.forEach((i) => {
             if (oldRecycleBlocks.length > 0) {
                 /**First use recyle Block */
                 var oldRecyleBlock = oldRecycleBlocks.pop();
@@ -65,30 +70,30 @@ export class BlockQueue extends EventBase {
                     oldBlockInfo: {
                         index: oldRecyleBlock.index,
                         position: oldRecyleBlock.position,
-                        size: oldRecyleBlock.size
+                        size: oldRecyleBlock.size,
                     },
                     newBlockInfo: {
                         index: i.index,
                         position: i.position,
-                        size: i.size
-                    }
+                        size: i.size,
+                    },
                 });
             } else {
                 /**No recyle Block, have to create new Block */
                 addInfos.push({
                     index: i.index,
                     position: i.position,
-                    size: i.size
+                    size: i.size,
                 });
             }
         });
 
         /**If still have remain block,  discard those blocks */
-        oldRecycleBlocks.forEach(i => {
+        oldRecycleBlocks.forEach((i) => {
             removeInfos.push({
                 index: i.index,
                 position: i.position,
-                size: i.size
+                size: i.size,
             });
         });
 
@@ -106,16 +111,18 @@ export class BlockQueue extends EventBase {
         var snapShoot = this.getSnapShoot(0);
         this._snapShoot = snapShoot;
         this.raise(BlockEvent.init, <InitInfoArgs>{
-            addInfos: snapShoot.visibleBlocks.map((i) => { return { index: i.index, position: i.position } }),
-            totalSize: this.getTotalSize()
+            addInfos: snapShoot.visibleBlocks.map((i) => {
+                return { index: i.index, position: i.position };
+            }),
+            totalSize: this.getTotalSize(),
         });
     }
 
     public getCurrentBlockState(): CurrentBlocks {
         return {
             blocks: this._snapShoot.visibleBlocks,
-            totalSize: this.getTotalSize()
-        }
+            totalSize: this.getTotalSize(),
+        };
     }
     //#endregion
 
@@ -125,7 +132,7 @@ export class BlockQueue extends EventBase {
             return null;
         }
 
-        var result = ArrayHelper.find(this._blockInfo, i => i.index === index);
+        var result = ArrayHelper.find(this._blockInfo, (i) => i.index === index);
         if (result) {
             return result;
         } else {
@@ -139,21 +146,27 @@ export class BlockQueue extends EventBase {
         var updateVisibleBlocks: Array<UpdateBlockInfo> = [];
         var oldRecycleBlocks: Array<BlockPosition> = [];
 
-        cur.visibleBlocks.forEach(newBlock => {
-            var oldBlock = ArrayHelper.find(pre.visibleBlocks, b => b.index === newBlock.index);
+        cur.visibleBlocks.forEach((newBlock) => {
+            var oldBlock = ArrayHelper.find(
+                pre.visibleBlocks,
+                (b) => b.index === newBlock.index
+            );
             if (oldBlock) {
                 /**Block is still visible */
-                if (oldBlock.size !== newBlock.size || oldBlock.position !== newBlock.position) {
+                if (
+                    oldBlock.size !== newBlock.size ||
+                    oldBlock.position !== newBlock.position
+                ) {
                     updateVisibleBlocks.push({
                         oldBlockInfo: {
                             index: oldBlock.index,
                             position: oldBlock.position,
-                            size: oldBlock.size
+                            size: oldBlock.size,
                         },
                         newBlockInfo: {
                             index: newBlock.index,
                             position: newBlock.position,
-                            size: newBlock.size
+                            size: newBlock.size,
                         },
                     });
                 }
@@ -163,37 +176,42 @@ export class BlockQueue extends EventBase {
                 newVisibleBlocks.push({
                     index: newBlock.index,
                     position: newBlock.position,
-                    size: newBlock.size
-                })
+                    size: newBlock.size,
+                });
             }
         });
 
         /**Get Block is invisible in the current snapshoot and make it recycle*/
-        var oldFreeBlock = pre.visibleBlocks.filter(i => visibleBlockIndex.indexOf(i.index) === -1);
-        oldFreeBlock.forEach(i => oldRecycleBlocks.push({
-            index: i.index,
-            position: i.position,
-            size: i.size
-        }));
+        var oldFreeBlock = pre.visibleBlocks.filter(
+            (i) => visibleBlockIndex.indexOf(i.index) === -1
+        );
+        oldFreeBlock.forEach((i) =>
+            oldRecycleBlocks.push({
+                index: i.index,
+                position: i.position,
+                size: i.size,
+            })
+        );
 
         return {
             oldRecycleBlocks: oldRecycleBlocks,
             newVisibleBlocks: newVisibleBlocks,
-            updateVisibleBlocks: updateVisibleBlocks
-        }
+            updateVisibleBlocks: updateVisibleBlocks,
+        };
     }
 
     private getSnapShoot(offset: number): SnapShoot {
         var head = this.getHeadBlockInfo(offset);
-        var visibleSize = head.cover === 0 ? this.getBlockInfo(head.index).size : head.cover;
+        var visibleSize =
+            head.cover === 0 ? this.getBlockInfo(head.index).size : head.cover;
         var snapShoot = <SnapShoot>{
             visibleBlocks: [
                 {
                     index: head.index,
                     position: this.getBlockPosition(head.index),
-                    size: this.getBlockInfo(head.index).size
-                }
-            ]
+                    size: this.getBlockInfo(head.index).size,
+                },
+            ],
         };
 
         var last = false;
@@ -212,7 +230,7 @@ export class BlockQueue extends EventBase {
             snapShoot.visibleBlocks.push({
                 index: i,
                 position: this.getBlockPosition(i),
-                size: size
+                size: size,
             });
         }
         return snapShoot;
@@ -234,13 +252,13 @@ export class BlockQueue extends EventBase {
                 return {
                     /**Enlarge one Block to make smooth transition*/
                     index: i > 0 ? i - 1 : i,
-                    cover: totalSize - offset
+                    cover: totalSize - offset,
                 };
             } else if (totalSize == offset) {
                 return {
                     /**Enlarge one Block to make smooth transition*/
                     index: i > 0 ? i : i + 1,
-                    cover: 0
+                    cover: 0,
                 };
             }
         }
@@ -252,6 +270,19 @@ export class BlockQueue extends EventBase {
             total += this.getBlockInfo(i).size;
         }
         return total;
+    }
+
+    private getActualOffset(originalOffset: number): number {
+        if (originalOffset < 0) {
+            return 0;
+        }
+
+        var totalSize = this.getTotalSize();
+        if (originalOffset > totalSize) {
+            return totalSize;
+        }
+
+        return originalOffset;
     }
     //#endregion
 }
@@ -284,8 +315,8 @@ export interface InitInfoArgs extends EventArgs {
 }
 
 export enum BlockEvent {
-    change = 'change',
-    init = 'init'
+    change = "change",
+    init = "init",
 }
 
 interface BlockDataInfo {
