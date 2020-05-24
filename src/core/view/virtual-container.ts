@@ -29,6 +29,10 @@ export class VirtualContainer extends EventBase {
         this.bindServiceEvent();
         this._service.init();
     }
+
+    public scroll(direction: Direction, offset: number): void {
+        this._service.scroll(direction, offset);
+    }
     //#endregion
 
     //#region Init
