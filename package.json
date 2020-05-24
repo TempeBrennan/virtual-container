@@ -2,10 +2,9 @@
   "name": "virtual-container",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack"
+    "dev": "webpack --env.development",
+    "prod": "webpack --env.production"
   },
   "repository": {
     "type": "git",
@@ -18,9 +17,11 @@
   },
   "homepage": "https://github.com/TempeBrennan/virtual-container#readme",
   "dependencies": {
+    "css-loader": "^3.5.3",
+    "style-loader": "^1.2.1",
+    "ts-loader": "latest",
     "typescript": "latest",
     "webpack": "latest",
-    "ts-loader": "latest",
     "webpack-cli": "latest"
   }
 }
