@@ -1,5 +1,3 @@
-import * as Cyz from './JS/virtual-container.js';
+import * as Cyz from './js/virtual-container.js';
 
 export = Cyz;
-
-
