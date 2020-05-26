@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "dev": "webpack --env.development",
-    "prod": "webpack --env.production"
+    "dev": "webpack --config webpack.dev.js",
+    "prod": "webpack --config webpack.prod.js"
   },
   "repository": {
     "type": "git",
