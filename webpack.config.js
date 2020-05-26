@@ -1,3 +1,5 @@
+const CopyPlugin = require('copy-webpack-plugin');
+
 module.exports = function (env, argv) {
     return {
         entry: __dirname + "/main.ts",
@@ -25,6 +27,13 @@ module.exports = function (env, argv) {
                 },
             ]
         },
-        devtool: env.production ? 'none' : 'sourcemap'
+        devtool: env.production ? 'none' : 'sourcemap',
+        plugins: [
+            new CopyPlugin({
+                patterns: [
+                    { from: __dirname + '/README.md', to: __dirname + '/npm/README.md' },
+                ],
+            }),
+        ]
     };
 }

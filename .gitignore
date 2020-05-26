@@ -2,3 +2,4 @@
 /output
 .vscode/settings.json
 npm/JS/virtual-container.js
+package-lock.json
