@@ -97,7 +97,15 @@ export class BlockQueue extends EventBase {
             });
         });
 
-        this._offset = offset;
+        if (this._offset !== offset) {
+            var oldOffset = this._offset;
+            this._offset = offset;
+            this.raise(BlockEvent.offsetChange, <OffsetChangeArgs>{
+                oldOffset: oldOffset,
+                newOffset: this._offset
+            });
+        }
+
         this._snapShoot = curSnapShoot;
         this.raise(BlockEvent.change, <ChangeInfoArgs>{
             addInfos: addInfos,
@@ -317,6 +325,7 @@ export interface InitInfoArgs extends EventArgs {
 export enum BlockEvent {
     change = "change",
     init = "init",
+    offsetChange = "offsetchange"
 }
 
 interface BlockDataInfo {
@@ -340,4 +349,9 @@ interface BlockChangeInfo {
     newVisibleBlocks: Array<BlockPosition>;
     oldRecycleBlocks: Array<BlockPosition>;
     updateVisibleBlocks: Array<UpdateBlockInfo>;
+}
+
+export interface OffsetChangeArgs extends EventArgs {
+    oldOffset: number;
+    newOffset: number;
 }

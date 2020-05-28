@@ -1,4 +1,4 @@
-import { VirtualContainerService, ServiceEvent, RowInitArgs, ColumnInitArgs, RowChangeArgs, ColumnInfo, ColumnState, ColumnChangeArgs, RowInfo } from "../service/virtual-container.service";
+import { VirtualContainerService, ServiceEvent, RowInitArgs, ColumnInitArgs, RowChangeArgs, ColumnInfo, ColumnState, ColumnChangeArgs, RowInfo, OffsetChangeArgs } from "../service/virtual-container.service";
 import { VirtualContainerInfo, Direction, EventArgs } from "../../common/common-type";
 import { EventBase } from "../../common/event-base";
 
@@ -114,14 +114,14 @@ export class VirtualContainer extends EventBase {
 
     //#region Delete
     private removeRowElement(rowIndex: number): void {
-        var virtualCanvas = this._container.querySelector(`.${this.getVirtualCanvasClassName()}`);
+        var virtualCanvas = this.getCanvas();
         virtualCanvas.removeChild(this.getRowElement(rowIndex));
     }
     //#endregion
 
     //#region Update
     private insertRowElement(rowIndex: number, rowHeight: number, rowPosition: number, totalWidth: number, cellInfos: Array<ColumnInfo>): void {
-        var virtualCanvas = this._container.querySelector(`.${this.getVirtualCanvasClassName()}`);
+        var virtualCanvas = this.getCanvas();
         var rowElement = this.createRowElement(rowIndex, rowHeight, rowPosition);
 
         var rowVirtualCanvas = this.createVirtualCanvas(totalWidth, Direction.horizontal);
@@ -156,10 +156,14 @@ export class VirtualContainer extends EventBase {
     private getAllRowElements(): NodeListOf<HTMLDivElement> {
         return this._container.querySelectorAll(`.${this.getRowClassName()}`);
     }
+
+    private getCanvas(): HTMLDivElement {
+        return this._container.querySelector(`.${this.getVirtualCanvasClassName()}`);
+    }
     //#endregion
 
     private initRowElement(rowPosition: Array<number>, rowHeight: number): void {
-        var virtualCanvas = this._container.querySelector(`.${this.getVirtualCanvasClassName()}`);
+        var virtualCanvas = this.getCanvas();
         var fragement = document.createDocumentFragment();
         for (var i = 0; i < rowPosition.length; i++) {
             fragement.appendChild(this.createRowElement(i, rowHeight, rowPosition[i]));
@@ -266,6 +270,7 @@ export class VirtualContainer extends EventBase {
         this._service.addEventListener(ServiceEvent.ColInit, this.columnInit.bind(this));
         this._service.addEventListener(ServiceEvent.RowChange, this.rowChange.bind(this));
         this._service.addEventListener(ServiceEvent.ColChange, this.columnChange.bind(this));
+        this._service.addEventListener(ServiceEvent.OffsetChange, this.offsetChange.bind(this));
     }
 
     private rowChange(s, e: RowChangeArgs): void {
@@ -356,6 +361,16 @@ export class VirtualContainer extends EventBase {
         }
         this.raise(VirtualContainerEvent.update, this.createChangeArgs(rowInfos, columnInfos));
 
+    }
+
+    private offsetChange(s, eArgs: OffsetChangeArgs): void {
+        if (eArgs.direction === Direction.horizontal) {
+            this.getAllRowElements().forEach(r => {
+                r.scrollLeft = eArgs.newOffset;
+            });
+        } else {
+            this._container.scrollTop = eArgs.newOffset;
+        }
     }
     //#endregion
 

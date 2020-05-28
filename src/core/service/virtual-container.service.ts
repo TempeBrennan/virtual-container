@@ -128,6 +128,20 @@ export class VirtualContainerService extends EventBase {
                 removeColumns: e.removeInfos.map(i => { return { columnIndex: i.index } })
             });
         });
+        this._dataModel.addEventListener(DataModelEvent.horizontalOffsetChange, (s, e: OffsetChangeArgs) => {
+            this.raise(ServiceEvent.OffsetChange, <OffsetChangeArgs>{
+                direction: Direction.horizontal,
+                oldOffset: e.oldOffset,
+                newOffset: e.newOffset
+            });
+        });
+        this._dataModel.addEventListener(DataModelEvent.verticalOffsetChange, (s, e: OffsetChangeArgs) => {
+            this.raise(ServiceEvent.OffsetChange, <OffsetChangeArgs>{
+                direction: Direction.vertical,
+                oldOffset: e.oldOffset,
+                newOffset: e.newOffset
+            });
+        });
     }
 
 }
@@ -136,7 +150,8 @@ export enum ServiceEvent {
     RowInit = 'rowinit',
     ColInit = 'colinit',
     RowChange = 'rowchange',
-    ColChange = 'colchange'
+    ColChange = 'colchange',
+    OffsetChange = 'offsetchange'
 }
 
 export interface RowInitArgs extends EventArgs {
@@ -198,4 +213,10 @@ export interface ColumnState {
 export interface RowState {
     totalHeight: number;
     rowInfos: Array<RowInfo>;
+}
+
+export interface OffsetChangeArgs extends EventArgs {
+    direction: Direction,
+    oldOffset: number;
+    newOffset: number;
 }
