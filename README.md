@@ -78,15 +78,26 @@ function getData(rowIndex, columnIndex) {
 ```javascript
 virtualContainer.resizeRow(3, 80);
 ```
+<b>Effect:</b>
+![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api1.gif?raw=true)
+
 ```javascript
 virtualContainer.resizeColumn(4, 300);
 ```
+<b>Effect:</b>
+![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api2.gif?raw=true)
+
 ```javascript
 virtualContainer.scroll('vertical', 200);
 ```
+<b>Effect:</b>
+![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api3.gif?raw=true)
+
 ```javascript
 virtualContainer.scroll('horizontal', 800);
 ```
+<b>Effect:</b>
+![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api4.gif?raw=true)
 
 ## Why Choose
 
