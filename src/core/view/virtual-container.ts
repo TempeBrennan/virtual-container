@@ -283,18 +283,19 @@ export class VirtualContainer extends EventBase {
             rowInfos.push(r);
         });
         e.updateRows.forEach((r) => {
-            /**Update row index */
             if (r.oldRowInfo.rowIndex !== r.newRowInfo.rowIndex) {
                 this.updateRowIndex(r.oldRowInfo.rowIndex, r.newRowInfo.rowIndex);
             }
 
             if (r.oldRowInfo.rowHeight !== r.newRowInfo.rowHeight) {
                 this.setRowHeight(r.newRowInfo.rowIndex, r.newRowInfo.rowHeight);
-            } else if (r.oldRowInfo.position !== r.newRowInfo.position) {
+            }
+
+            if (r.oldRowInfo.position !== r.newRowInfo.position) {
                 this.setRowPosition(r.newRowInfo.rowIndex, r.newRowInfo.position);
             }
-            rowInfos.push(r.newRowInfo);
 
+            rowInfos.push(r.newRowInfo);
         });
         e.removeRows.forEach((r) => {
             this.removeRowElement(r.rowIndex);
@@ -322,7 +323,9 @@ export class VirtualContainer extends EventBase {
 
                 if (c.oldColumnInfo.columnWidth !== c.newColumnInfo.columnWidth) {
                     this.setColumnWidth(r.rowIndex, c.newColumnInfo.columnIndex, c.newColumnInfo.columnWidth);
-                } else if (c.oldColumnInfo.position !== c.newColumnInfo.position) {
+                }
+
+                if (c.oldColumnInfo.position !== c.newColumnInfo.position) {
                     this.setColumnPosition(r.rowIndex, c.newColumnInfo.columnIndex, c.newColumnInfo.position);
                 }
                 columnInfos.push(c.newColumnInfo);
