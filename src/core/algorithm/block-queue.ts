@@ -258,14 +258,12 @@ export class BlockQueue extends EventBase {
             totalSize += this.getBlockInfo(i).size;
             if (totalSize > offset) {
                 return {
-                    /**Enlarge one Block to make smooth transition*/
-                    index: i > 0 ? i - 1 : i,
+                    index: i,
                     cover: totalSize - offset,
                 };
             } else if (totalSize == offset) {
                 return {
-                    /**Enlarge one Block to make smooth transition*/
-                    index: i > 0 ? i : i + 1,
+                    index: i + 1,
                     cover: 0,
                 };
             }
