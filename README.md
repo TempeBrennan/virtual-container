@@ -43,7 +43,6 @@ document.body.appendChild(div);
 
 ![big data grid](https://github.com/TempeBrennan/virtual-container/blob/master/res/big-data.gif?raw=true)
 
-***
 ## Usage:
 
 You can use virtual container to solve this issue
@@ -74,6 +73,21 @@ function getData(rowIndex, columnIndex) {
 
 ![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/virtual-grid.gif?raw=true)
 
+## API example
+
+```javascript
+virtualContainer.resizeRow(3, 80);
+```
+```javascript
+virtualContainer.resizeColumn(4, 300);
+```
+```javascript
+virtualContainer.scroll('vertical', 200);
+```
+```javascript
+virtualContainer.scroll('horizontal', 800);
+```
+
 ## Why Choose
 
 * Light
@@ -81,4 +95,4 @@ function getData(rowIndex, columnIndex) {
 * More Usage
     - create ListBox ListView SpreadSheet
 * Continue Update
-    - first version is not good, will bed updated later.
+    - first version is not good, will be updated later.

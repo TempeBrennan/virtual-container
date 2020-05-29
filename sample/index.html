@@ -8,10 +8,14 @@
 
 <body>
     <div id="container"></div>
+    <input type="button" id="btn1" value="resize row">
+    <input type="button" id="btn2" value="resize column">
+    <input type="button" id="btn3" value="vertical scroll">
+    <input type="button" id="btn4" value="horizontal scroll">
     <script>
         var virtualContainer = new Cyz.VirtualContainer(document.querySelector('#container'), {
-            rowCount: 10000,
-            colCount: 10000,
+            rowCount: 30,
+            colCount: 30,
             rowHeight: 30,
             colWidth: 80,
             width: document.querySelector('#container').offsetWidth,
@@ -29,6 +33,19 @@
         function getData(rowIndex, columnIndex) {
             return `(${rowIndex + 1},${columnIndex + 1})`;
         }
+
+        document.getElementById('btn1').addEventListener('click', function () {
+            virtualContainer.resizeRow(3, 80);
+        });
+        document.getElementById('btn2').addEventListener('click', function () {
+            virtualContainer.resizeColumn(4, 300);
+        });
+        document.getElementById('btn3').addEventListener('click', function () {
+            virtualContainer.scroll('vertical', 200);
+        });
+        document.getElementById('btn4').addEventListener('click', function () {
+            virtualContainer.scroll('horizontal', 800);
+        });
 
     </script>
 </body>

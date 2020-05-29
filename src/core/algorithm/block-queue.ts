@@ -287,7 +287,7 @@ export class BlockQueue extends EventBase {
 
         var totalSize = this.getTotalSize();
         if (originalOffset > totalSize) {
-            return totalSize;
+            return totalSize - this._containerSize;
         }
 
         return originalOffset;
