@@ -365,9 +365,7 @@ export class VirtualContainer extends EventBase {
 
     private offsetChange(s, eArgs: OffsetChangeArgs): void {
         if (eArgs.direction === Direction.horizontal) {
-            this.getAllRowElements().forEach(r => {
-                r.scrollLeft = eArgs.newOffset;
-            });
+            this._container.scrollLeft = eArgs.newOffset;
         } else {
             this._container.scrollTop = eArgs.newOffset;
         }
