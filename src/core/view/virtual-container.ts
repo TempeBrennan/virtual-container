@@ -114,14 +114,14 @@ export class VirtualContainer extends EventBase {
 
     //#region Delete
     private removeRowElement(rowIndex: number): void {
-        var virtualCanvas = this.getCanvas();
+        var virtualCanvas = this.getCanvas(this._container);
         virtualCanvas.removeChild(this.getRowElement(rowIndex));
     }
     //#endregion
 
     //#region Update
     private insertRowElement(rowIndex: number, rowHeight: number, rowPosition: number, totalWidth: number, cellInfos: Array<ColumnInfo>): void {
-        var virtualCanvas = this.getCanvas();
+        var virtualCanvas = this.getCanvas(this._container);
         var rowElement = this.createRowElement(rowIndex, rowHeight, rowPosition);
 
         var rowVirtualCanvas = this.createVirtualCanvas(totalWidth, Direction.horizontal);
@@ -157,13 +157,13 @@ export class VirtualContainer extends EventBase {
         return this._container.querySelectorAll(`.${this.getRowClassName()}`);
     }
 
-    private getCanvas(): HTMLDivElement {
-        return this._container.querySelector(`.${this.getVirtualCanvasClassName()}`);
+    private getCanvas(container: HTMLDivElement): HTMLDivElement {
+        return container.querySelector(`.${this.getVirtualCanvasClassName()}`);
     }
     //#endregion
 
     private initRowElement(rowPosition: Array<number>, rowHeight: number): void {
-        var virtualCanvas = this.getCanvas();
+        var virtualCanvas = this.getCanvas(this._container);
         var fragement = document.createDocumentFragment();
         for (var i = 0; i < rowPosition.length; i++) {
             fragement.appendChild(this.createRowElement(i, rowHeight, rowPosition[i]));
@@ -274,6 +274,7 @@ export class VirtualContainer extends EventBase {
     }
 
     private rowChange(s, e: RowChangeArgs): void {
+        this.updateRowCanvasHeight(e.totalSize);
         var state = this._service.getColumnState();
         var columnInfos: Array<ColumnInfo> = state.columnInfos;
         var rowInfos: Array<RowInfo> = [];
@@ -306,6 +307,7 @@ export class VirtualContainer extends EventBase {
     }
 
     private columnChange(s, e: ColumnChangeArgs): void {
+        this.updateColumnCanvasHeight(e.totalSize);
         var rowState = this._service.getRowState();
         var rowInfos: Array<RowInfo> = rowState.rowInfos;
         var columnInfos: Array<ColumnInfo> = [];
@@ -372,6 +374,15 @@ export class VirtualContainer extends EventBase {
         } else {
             this._container.scrollTop = eArgs.newOffset;
         }
+    }
+
+    private updateRowCanvasHeight(size: number): void {
+        var canvas = this.getCanvas(this._container);
+        canvas.style.height = `${size}px`;
+    }
+
+    private updateColumnCanvasHeight(size: number): void {
+        this.getAllRowElements().forEach(r => this.getCanvas(r).style.width = `${size}px`);
     }
     //#endregion
 

@@ -111,6 +111,7 @@ export class BlockQueue extends EventBase {
             addInfos: addInfos,
             updateInfos: updateInfos,
             removeInfos: removeInfos,
+            totalSize: blockChangeInfo.totalSize
         });
     }
 
@@ -205,6 +206,7 @@ export class BlockQueue extends EventBase {
             oldRecycleBlocks: oldRecycleBlocks,
             newVisibleBlocks: newVisibleBlocks,
             updateVisibleBlocks: updateVisibleBlocks,
+            totalSize: this.getTotalSize()
         };
     }
 
@@ -313,6 +315,7 @@ export interface ChangeInfoArgs extends EventArgs {
     addInfos: Array<BlockPosition>;
     updateInfos: Array<UpdateBlockInfo>;
     removeInfos: Array<BlockPosition>;
+    totalSize: number;
 }
 
 export interface InitInfoArgs extends EventArgs {
@@ -347,6 +350,7 @@ interface BlockChangeInfo {
     newVisibleBlocks: Array<BlockPosition>;
     oldRecycleBlocks: Array<BlockPosition>;
     updateVisibleBlocks: Array<UpdateBlockInfo>;
+    totalSize: number;
 }
 
 export interface OffsetChangeArgs extends EventArgs {

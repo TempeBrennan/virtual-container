@@ -91,7 +91,8 @@ export class VirtualContainerService extends EventBase {
                         }
                     };
                 }),
-                removeRows: e.removeInfos.map(i => { return { rowIndex: i.index } })
+                removeRows: e.removeInfos.map(i => { return { rowIndex: i.index } }),
+                totalSize: e.totalSize
             });
         });
         this._dataModel.addEventListener(DataModelEvent.colInit, (s, e: InitInfoArgs) => {
@@ -125,7 +126,8 @@ export class VirtualContainerService extends EventBase {
                         }
                     };
                 }),
-                removeColumns: e.removeInfos.map(i => { return { columnIndex: i.index } })
+                removeColumns: e.removeInfos.map(i => { return { columnIndex: i.index } }),
+                totalSize: e.totalSize
             });
         });
         this._dataModel.addEventListener(DataModelEvent.horizontalOffsetChange, (s, e: OffsetChangeArgs) => {
@@ -172,12 +174,14 @@ export interface RowChangeArgs extends EventArgs {
     addRows: Array<RowInfo>;
     updateRows: Array<UpdateRowInfo>;
     removeRows: Array<RowInfo>;
+    totalSize: number;
 }
 
 export interface ColumnChangeArgs extends EventArgs {
     addColumns: Array<ColumnInfo>;
     updateColumns: Array<UpdateColumnInfo>;
     removeColumns: Array<ColumnInfo>;
+    totalSize: number;
 }
 
 export interface DataInfo {
