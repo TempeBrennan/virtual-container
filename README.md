@@ -31,7 +31,31 @@ document.body.appendChild(div);
 ![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/virtual-grid.gif?raw=true)
 
 ## Easy to start:
+```javascript
+var virtualContainer = new VirtualContainer(document.querySelector('#container'), {
+    rowCount: 5000,
+    colCount: 5000,
+    rowHeight: 30,
+    colWidth: 80,
+    width: (document.querySelector('#container') as HTMLDivElement).offsetWidth,
+    height: (document.querySelector('#container') as HTMLDivElement).offsetHeight
+});
 
+virtualContainer.addEventListener('update', function (s, e) {
+    e.cellList.forEach(c => {
+        c.element.innerHTML = getData(c.rowIndex, c.columnIndex);
+    });
+});
+
+virtualContainer.init();
+function getData(rowIndex, columnIndex) {
+    return `(${rowIndex + 1},${columnIndex + 1})`;
+}
+```
+
+clone from here:
+
+https://github.com/TempeBrennan/VirtualContainerExample
 
 ## API
 
@@ -65,7 +89,7 @@ virtualContainer.scroll('horizontal', 800);
 
 ## Advantages
 * Light
-* More Usage(eg:ListBox ListView SpreadSheet)
+* More Usage (eg: ListBox ListView SpreadSheet)
 * Continue Update
 
 ## Hoping your suggestion

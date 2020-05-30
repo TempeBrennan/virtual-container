@@ -1,11 +1,12 @@
 declare namespace Cyz {
 
-    type event = 'change';
+    type event = 'update';
+    type direction = 'horizontal' | 'vertical';
 
     export class VirtualContainer {
         constructor(container: HTMLDivElement, containerInfo: VirtualContainerInfo);
         public init(): void;
-        public scroll(direction: Direction, offset: number): void;
+        public scroll(direction: direction, offset: number): void;
         public resizeRow(rowIndex: number, rowHeight: number): void;
         public resizeColumn(columnIndex: number, columnWidth: number): void;
         public addEventListener(name: event, fn: Function): void;
@@ -19,11 +20,6 @@ declare namespace Cyz {
         colWidth: number;
         width: number;
         height: number;
-    }
-
-    export enum Direction {
-        horizontal = 'horizontal',
-        vertical = 'vertical',
     }
 }
 
