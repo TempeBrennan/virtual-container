@@ -1,6 +1,6 @@
 {
   "name": "virtual-container",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "",
   "main": "index.js",
   "keywords": [
@@ -8,7 +8,16 @@
     "big data grid",
     "dom recycle",
     "large data sheet",
-    "listbox listview spreadsheet"
+    "large data grid",
+    "large data table",
+    "table",
+    "listbox",
+    "grid",
+    "gridview",
+    "listview",
+    "excel online",
+    "large DOM amount",
+    "browser performance"
   ],
   "repository": {
     "type": "git",
