@@ -38,9 +38,7 @@ var virtualContainer = new VirtualContainer(document.querySelector('#container')
     rowCount: 5000,
     colCount: 5000,
     rowHeight: 30,
-    colWidth: 80,
-    width: (document.querySelector('#container') as HTMLDivElement).offsetWidth,
-    height: (document.querySelector('#container') as HTMLDivElement).offsetHeight
+    colWidth: 80
 });
 
 virtualContainer.addEventListener('update', function (s, e) {

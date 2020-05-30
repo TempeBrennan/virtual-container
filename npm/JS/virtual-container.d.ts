@@ -4,7 +4,7 @@ declare namespace Cyz {
     type direction = 'horizontal' | 'vertical';
 
     export class VirtualContainer {
-        constructor(container: HTMLDivElement, containerInfo: VirtualContainerInfo);
+        constructor(container: HTMLDivElement, containerInfo: Config);
         public init(): void;
         public scroll(direction: direction, offset: number): void;
         public resizeRow(rowIndex: number, rowHeight: number): void;
@@ -13,13 +13,11 @@ declare namespace Cyz {
         public removeEventListener(name: event, fn: Function): void;
     }
 
-    export interface VirtualContainerInfo {
+    export interface Config {
         rowCount: number;
         colCount: number;
         rowHeight: number;
         colWidth: number;
-        width: number;
-        height: number;
     }
 }
 

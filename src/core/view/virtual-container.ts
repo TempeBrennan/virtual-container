@@ -4,10 +4,10 @@ import { EventBase } from "../../common/event-base";
 
 export class VirtualContainer extends EventBase {
     private _container: HTMLDivElement;
-    private _containerInfo: VirtualContainerInfo;
+    private _containerInfo: Config;
     private _service: VirtualContainerService;
 
-    constructor(container: HTMLDivElement, containerInfo: VirtualContainerInfo) {
+    constructor(container: HTMLDivElement, containerInfo: Config) {
         super();
         this._container = container;
         this._containerInfo = containerInfo;
@@ -23,7 +23,9 @@ export class VirtualContainer extends EventBase {
     }
 
     public init(): void {
-        this._service = new VirtualContainerService(this._containerInfo);
+        (<VirtualContainerInfo>this._containerInfo).width = this._container.clientWidth;
+        (<VirtualContainerInfo>this._containerInfo).height = this._container.clientHeight;
+        this._service = new VirtualContainerService(<VirtualContainerInfo>this._containerInfo);
         this._container = this._container;
         this.bindElementEvent();
         this.bindServiceEvent();
@@ -393,10 +395,11 @@ export class VirtualContainer extends EventBase {
 
 }
 
-export interface VirtualContainerConfig {
-    element: HTMLDivElement;
+export interface Config {
     rowCount: number;
-    rowHeight?: number;
+    colCount: number;
+    rowHeight: number;
+    colWidth: number;
 }
 
 export enum VirtualContainerEvent {
