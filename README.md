@@ -31,6 +31,8 @@ document.body.appendChild(div);
 ![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/virtual-grid.gif?raw=true)
 
 ## Easy to start:
+
+example:
 ```javascript
 var virtualContainer = new VirtualContainer(document.querySelector('#container'), {
     rowCount: 5000,
@@ -62,28 +64,24 @@ https://github.com/TempeBrennan/VirtualContainerExample
 ```javascript
 virtualContainer.resizeRow(3, 80);
 ```
-<b>Effect:</b>
 
 ![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api1.gif?raw=true)
 
 ```javascript
 virtualContainer.resizeColumn(4, 300);
 ```
-<b>Effect:</b>
 
 ![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api2.gif?raw=true)
 
 ```javascript
 virtualContainer.scroll('vertical', 200);
 ```
-<b>Effect:</b>
 
 ![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api3.gif?raw=true)
 
 ```javascript
 virtualContainer.scroll('horizontal', 800);
 ```
-<b>Effect:</b>
 
 ![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api4.gif?raw=true)
 
@@ -95,4 +93,4 @@ virtualContainer.scroll('horizontal', 800);
 ## Hoping your suggestion
 Any bug or suggestion please write here
 
-![bug](https://github.com/TempeBrennan/virtual-container/issues)
+https://github.com/TempeBrennan/virtual-container/issues

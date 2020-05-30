@@ -195,11 +195,13 @@ export class VirtualContainer extends EventBase {
     }
 
     private initColumnElement(totalWidth: number, columnCount: number, columnWidth: number, columnPositions: Array<number>): void {
-        this.getAllRowElements().forEach(rowElement => {
+        var rows = this.getAllRowElements();
+        for (var i = 0; i < rows.length; i++) {
+            var rowElement = rows[i];
             var virtualCanvas = this.createVirtualCanvas(totalWidth, Direction.horizontal);
             virtualCanvas.appendChild(this.createCellListFragement(columnCount, columnWidth, columnPositions));
             rowElement.appendChild(virtualCanvas);
-        });
+        }
     }
     //#endregion
 
@@ -382,7 +384,10 @@ export class VirtualContainer extends EventBase {
     }
 
     private updateColumnCanvasHeight(size: number): void {
-        this.getAllRowElements().forEach(r => this.getCanvas(r).style.width = `${size}px`);
+        var rows = this.getAllRowElements();
+        for (var i = 0; i < rows.length; i++) {
+            this.getCanvas(rows[i]).style.width = `${size}px`;
+        }
     }
     //#endregion
 

@@ -23,7 +23,7 @@
         });
 
         virtualContainer.addEventListener('update', function (s, e) {
-            e.cellList.forEach(c => {
+            e.cellList.forEach(function (c) {
                 c.element.innerHTML = this.getData(c.rowIndex, c.columnIndex);
             });
         });
@@ -31,7 +31,7 @@
         virtualContainer.init();
 
         function getData(rowIndex, columnIndex) {
-            return `(${rowIndex + 1},${columnIndex + 1})`;
+            return '(' + (rowIndex + 1) + ',' + (columnIndex + 1) + ')';
         }
 
         document.getElementById('btn1').addEventListener('click', function () {
