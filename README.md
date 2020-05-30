@@ -34,7 +34,8 @@ document.body.appendChild(div);
 
 example:
 ```javascript
-var virtualContainer = new VirtualContainer(document.querySelector('#container'), {
+var virtualContainer = new VirtualContainer(document.querySelector('#container'),
+{
     rowCount: 5000,
     colCount: 5000,
     rowHeight: 30,
@@ -63,25 +64,25 @@ https://github.com/TempeBrennan/VirtualContainerExample
 virtualContainer.resizeRow(3, 80);
 ```
 
-![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api1.gif?raw=true)
+![resizeRow](https://github.com/TempeBrennan/virtual-container/blob/master/res/api1.gif?raw=true)
 
 ```javascript
 virtualContainer.resizeColumn(4, 300);
 ```
 
-![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api2.gif?raw=true)
+![resizeColumn](https://github.com/TempeBrennan/virtual-container/blob/master/res/api2.gif?raw=true)
 
 ```javascript
 virtualContainer.scroll('vertical', 200);
 ```
 
-![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api3.gif?raw=true)
+![scroll1](https://github.com/TempeBrennan/virtual-container/blob/master/res/api3.gif?raw=true)
 
 ```javascript
 virtualContainer.scroll('horizontal', 800);
 ```
 
-![virtual-container](https://github.com/TempeBrennan/virtual-container/blob/master/res/api4.gif?raw=true)
+![scroll2](https://github.com/TempeBrennan/virtual-container/blob/master/res/api4.gif?raw=true)
 
 ## Advantages
 * Light
