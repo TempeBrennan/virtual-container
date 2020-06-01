@@ -23,8 +23,8 @@ document.body.appendChild(div);
 
 <b>When data increase, huge quantity DOM slowed browser performance</b>
 
-![effect1](https://github.com/TempeBrennan/virtual-container/blob/master/res/effect1.png?raw=true)
-![effect2](https://github.com/TempeBrennan/virtual-container/blob/master/res/effect2.gif?raw=true)
+![effect1](https://github.com/TempeBrennan/virtual-container/blob/master/res/effect1.gif?raw=true)
+![effect2](https://github.com/TempeBrennan/virtual-container/blob/master/res/effect2.png?raw=true)
 
 <b>You can use virtual container to solve this issue</b>
 
