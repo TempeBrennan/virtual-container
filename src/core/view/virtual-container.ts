@@ -185,6 +185,9 @@ export class VirtualContainer extends EventBase {
         cellElement.style.width = `${columnWidth}px`;
         cellElement.style.height = `100%`;
         cellElement.style.left = `${columnPosition}px`;
+        if (this._containerInfo.cellTemplate !== undefined) {
+            cellElement.innerHTML = this._containerInfo.cellTemplate;
+        }
         return cellElement;
     }
 
@@ -400,6 +403,7 @@ export interface Config {
     colCount: number;
     rowHeight: number;
     colWidth: number;
+    cellTemplate?: string;
 }
 
 export enum VirtualContainerEvent {
